@@ -47,7 +47,11 @@ private struct AppRootView: View {
         case .characterCreation:
             CharacterCreationView(router: container.router)
         case .classSelection:
-            ClassSelectionView(router: container.router)
+            ClassSelectionView(
+                router: container.router,
+                selectStarterClassUseCase: container.selectStarterClassUseCase,
+                eventBus: container.eventBus
+            )
         case .mainHub:
             MainView(
                 viewModel: MainViewModel(
@@ -83,6 +87,8 @@ private struct AppRootView: View {
             MysteryPackView(
                 rewardIDs: rewardIDs,
                 openMysteryPackUseCase: container.openMysteryPackUseCase,
+                profileRepository: container.profileRepository,
+                eventBus: container.eventBus,
                 router: container.router
             )
         }
@@ -95,6 +101,8 @@ private struct AppRootView: View {
             MysteryPackView(
                 rewardIDs: rewardIDs,
                 openMysteryPackUseCase: container.openMysteryPackUseCase,
+                profileRepository: container.profileRepository,
+                eventBus: container.eventBus,
                 router: container.router
             )
         case let .reward(rewardID):
