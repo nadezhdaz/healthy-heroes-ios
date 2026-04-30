@@ -110,9 +110,6 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
         if !questUpdate.completedQuestIDs.isEmpty {
             profile.onboarding.hasCompletedFirstQuest = true
         }
-        if !rewardUpdate.unlockedRewardIDs.isEmpty {
-            profile.onboarding.hasOpenedFirstReward = true
-        }
         profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasCompletedFirstFoodLog
             && profile.onboarding.hasCompletedFirstQuest
             && profile.onboarding.hasOpenedFirstReward

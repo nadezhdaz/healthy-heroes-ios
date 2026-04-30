@@ -5,6 +5,8 @@ struct MysteryPackView: View {
 
     let rewardIDs: [RewardID]
     let openMysteryPackUseCase: any OpenMysteryPackUseCase
+    let profileRepository: any ProfileRepository
+    let eventBus: AppEventBus
     let router: AppRouter
 
     var body: some View {
@@ -99,6 +101,16 @@ struct MysteryPackView: View {
               let reward = try? openMysteryPackUseCase.open(rewardID: rewardID) else {
             state = .finished
             return
+        }
+
+        if var profile = try? profileRepository.loadProfile() {
+            profile.onboarding.hasOpenedFirstReward = true
+            profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasCompletedFirstFoodLog
+                && profile.onboarding.hasCompletedFirstQuest
+                && profile.onboarding.hasOpenedFirstReward
+            try? profileRepository.saveProfile(profile)
+            eventBus.post(.profileUpdated(profile))
+            eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
         }
 
         state = .revealed(reward)
