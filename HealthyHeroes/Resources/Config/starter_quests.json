@@ -1,0 +1,32 @@
+[
+  {
+    "currentProgress": 0,
+    "id": "daily_first_bite",
+    "rewardID": "wardrobe_leaf_cape",
+    "status": "active",
+    "target": 1,
+    "title": "Log one healthy choice",
+    "trigger": "logAnyHealthyFood",
+    "type": "daily"
+  },
+  {
+    "currentProgress": 0,
+    "id": "daily_fruit_friend",
+    "rewardID": "sticker_star",
+    "status": "active",
+    "target": 2,
+    "title": "Choose fruit twice",
+    "trigger": "logFruit",
+    "type": "challenge"
+  },
+  {
+    "currentProgress": 0,
+    "id": "daily_water_wave",
+    "rewardID": "class_explorer_badge",
+    "status": "active",
+    "target": 2,
+    "title": "Drink water twice",
+    "trigger": "logWater",
+    "type": "daily"
+  }
+]
