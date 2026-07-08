@@ -9,15 +9,33 @@ struct StickerAlbumView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        List(stickerIDs, id: \.self) { stickerID in
-            Label(stickerID, systemImage: "star.square.fill")
-        }
-        .overlay {
-            if stickerIDs.isEmpty {
-                StickerAlbumEmptyStateView()
+        LandscapeGameScreen(title: "Sticker Album", fallbackColor: Color.yellow.opacity(0.12)) { _ in
+            GamePanel(alignment: .leading) {
+                if stickerIDs.isEmpty {
+                    GameEmptyStateView(
+                        title: "No stickers yet",
+                        systemImage: "star.square",
+                        message: "Quest rewards can add stickers to this album."
+                    )
+                } else {
+                    ScrollView {
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12)
+                            ],
+                            spacing: 12
+                        ) {
+                            ForEach(stickerIDs, id: \.self) { stickerID in
+                                StickerCard(stickerID: stickerID)
+                            }
+                        }
+                    }
+                }
             }
         }
-        .navigationTitle("Sticker Album")
         .task {
             load()
         }
@@ -35,19 +53,27 @@ struct StickerAlbumView: View {
     }
 }
 
-private struct StickerAlbumEmptyStateView: View {
+private struct StickerCard: View {
+    let stickerID: StickerID
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "star.square")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            Text("No stickers yet")
+        VStack(spacing: 10) {
+            DesignImageView(assetID: stickerID, contentMode: .fit) {
+                Image(systemName: "star.square.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundStyle(.yellow)
+            }
+            .frame(width: 58, height: 58)
+
+            Text(stickerID)
                 .font(.headline)
-            Text("Quest rewards can add stickers to this album.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .lineLimit(1)
                 .multilineTextAlignment(.center)
         }
-        .padding(24)
+        .frame(maxWidth: .infinity, minHeight: 126)
+        .padding(12)
+        .background(Color.white.opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

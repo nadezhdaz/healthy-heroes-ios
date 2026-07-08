@@ -26,6 +26,10 @@ protocol EquipItemUseCase {
     func equip(itemID: WardrobeItemID) throws -> ChildProfile
 }
 
+protocol MarkRewardOpenedUseCase {
+    func markOpened(rewardID: RewardID) throws -> ChildProfile
+}
+
 protocol OpenMysteryPackUseCase {
     func open(rewardID: RewardID) throws -> Reward?
 }
@@ -49,6 +53,10 @@ struct SelectStarterClassUseCaseImpl: SelectStarterClassUseCase {
     let gameConfigRepository: any GameConfigRepository
 
     func select(_ characterClass: CharacterClass) throws -> ChildProfile {
+        guard characterClass.isAvailableAtStart else {
+            throw UseCaseError.classLocked
+        }
+
         var profile = try profileRepository.loadProfile()
             ?? ChildProfile.starter(quests: gameConfigRepository.starterQuests())
         profile.character.selectedClass = characterClass
@@ -101,7 +109,7 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
             config: mapConfig
         )
 
-        var rewardUpdate = rewardEngine.unlockRewards(
+        let rewardUpdate = rewardEngine.unlockRewards(
             for: questUpdate.completedQuestIDs,
             in: profile
         )
@@ -110,9 +118,7 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
         if !questUpdate.completedQuestIDs.isEmpty {
             profile.onboarding.hasCompletedFirstQuest = true
         }
-        profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasCompletedFirstFoodLog
-            && profile.onboarding.hasCompletedFirstQuest
-            && profile.onboarding.hasOpenedFirstReward
+        profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop
 
         try profileRepository.saveProfile(profile)
 
@@ -146,6 +152,25 @@ struct EquipItemUseCaseImpl: EquipItemUseCase {
             profile.wardrobe.equippedItemIDs.append(itemID)
         }
         profile.onboarding.hasEquippedFirstItem = true
+        profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop
+        try profileRepository.saveProfile(profile)
+        return profile
+    }
+}
+
+struct MarkRewardOpenedUseCaseImpl: MarkRewardOpenedUseCase {
+    let profileRepository: any ProfileRepository
+
+    func markOpened(rewardID: RewardID) throws -> ChildProfile {
+        guard var profile = try profileRepository.loadProfile() else {
+            throw UseCaseError.missingProfile
+        }
+        guard profile.unlockedRewardIDs.contains(rewardID) else {
+            throw UseCaseError.rewardLocked
+        }
+
+        profile.onboarding.hasOpenedFirstReward = true
+        profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop
         try profileRepository.saveProfile(profile)
         return profile
     }
@@ -162,4 +187,6 @@ struct OpenMysteryPackUseCaseImpl: OpenMysteryPackUseCase {
 enum UseCaseError: Error, Equatable {
     case missingProfile
     case itemLocked
+    case classLocked
+    case rewardLocked
 }

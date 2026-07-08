@@ -2,34 +2,78 @@ import SwiftUI
 
 struct MysteryPackView: View {
     @State private var state: MysteryPackState = .closed
+    @State private var errorMessage: String?
 
     let rewardIDs: [RewardID]
     let openMysteryPackUseCase: any OpenMysteryPackUseCase
+    let markRewardOpenedUseCase: any MarkRewardOpenedUseCase
+    let equipItemUseCase: any EquipItemUseCase
     let profileRepository: any ProfileRepository
     let eventBus: AppEventBus
     let router: AppRouter
 
     var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: imageName)
-                .font(.system(size: 88))
-                .foregroundStyle(.green)
-            Text(title)
-                .font(.title.bold())
-                .multilineTextAlignment(.center)
-            Text(subtitle)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+        LandscapeGameScreen(
+            title: "Mystery Pack",
+            backgroundAssetID: "mystery_pack_background",
+            fallbackColor: Color.green.opacity(0.12)
+        ) { size in
+            GamePanel {
+                HStack(spacing: 24) {
+                    DesignImageView(assetID: imageAssetID, contentMode: .fit) {
+                        Image(systemName: imageName)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.green)
+                    }
+                    .frame(width: min(210, size.width * 0.26), height: min(210, size.height * 0.52))
 
-            Button(buttonTitle, action: advance)
-                .buttonStyle(.borderedProminent)
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text(title)
+                            .font(.title.bold())
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.75)
+                        Text(subtitle)
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 12) {
+                            Button(buttonTitle, action: advance)
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
+
+                            if let reward = revealedReward, reward.type == .wardrobeItem {
+                                Button("Try On") {
+                                    equipReward(reward)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.large)
+                            }
+                        }
+
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .font(.callout)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .frame(maxWidth: 420, alignment: .leading)
+                }
+            }
+            .frame(maxWidth: min(760, size.width * 0.74), maxHeight: min(320, size.height * 0.72))
         }
-        .padding(24)
-        .navigationTitle("Mystery Pack")
         .onAppear {
             if case .closed = state {
                 state = .opening(step: 0)
             }
+        }
+    }
+
+    private var revealedReward: Reward? {
+        if case let .revealed(reward) = state {
+            reward
+        } else {
+            nil
         }
     }
 
@@ -41,6 +85,17 @@ struct MysteryPackView: View {
             "gift.fill"
         case .finished:
             "checkmark.seal.fill"
+        }
+    }
+
+    private var imageAssetID: String {
+        switch state {
+        case .closed:
+            "mystery_pack_closed"
+        case let .opening(step):
+            step < 1 ? "mystery_pack_closed" : "mystery_pack_half_opened"
+        case .revealed, .finished:
+            "mystery_pack_opened"
         }
     }
 
@@ -61,8 +116,8 @@ struct MysteryPackView: View {
         switch state {
         case .closed, .opening:
             "A completed quest unlocked a reward."
-        case let .revealed(reward):
-            "Type: \(reward.type.rawValue)"
+        case .revealed:
+            "Added to your collection."
         case .finished:
             "You can find unlocked items in rewards or wardrobe."
         }
@@ -103,16 +158,23 @@ struct MysteryPackView: View {
             return
         }
 
-        if var profile = try? profileRepository.loadProfile() {
-            profile.onboarding.hasOpenedFirstReward = true
-            profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasCompletedFirstFoodLog
-                && profile.onboarding.hasCompletedFirstQuest
-                && profile.onboarding.hasOpenedFirstReward
-            try? profileRepository.saveProfile(profile)
+        if let profile = try? markRewardOpenedUseCase.markOpened(rewardID: rewardID) {
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
         }
 
         state = .revealed(reward)
+    }
+
+    private func equipReward(_ reward: Reward) {
+        do {
+            let profile = try equipItemUseCase.equip(itemID: reward.id)
+            eventBus.post(.itemEquipped(reward.id))
+            eventBus.post(.profileUpdated(profile))
+            eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
+            state = .finished
+        } catch {
+            errorMessage = "Could not try on this reward."
+        }
     }
 }

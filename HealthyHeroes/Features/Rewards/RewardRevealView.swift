@@ -8,20 +8,31 @@ struct RewardRevealView: View {
     let router: AppRouter
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "gift.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(.green)
-            Text(reward?.title ?? "Reward")
-                .font(.title.bold())
-            Text(reward?.type.rawValue ?? rewardID)
-                .foregroundStyle(.secondary)
-            Button("Close") {
-                router.dismissSheet()
+        LandscapeGameScreen(title: "Reward", fallbackColor: Color.green.opacity(0.1), showsBackButton: false) { size in
+            GamePanel {
+                HStack(spacing: 24) {
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: min(100, size.height * 0.24)))
+                        .foregroundStyle(.green)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(reward?.title ?? "Reward")
+                            .font(.title.bold())
+                            .lineLimit(2)
+                        Text(reward?.type.rawValue ?? rewardID)
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        Button("Close") {
+                            router.dismissSheet()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                    }
+                    .frame(maxWidth: 420, alignment: .leading)
+                }
             }
-            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: min(680, size.width * 0.7), maxHeight: min(260, size.height * 0.58))
         }
-        .padding(24)
         .task {
             reward = try? openMysteryPackUseCase.open(rewardID: rewardID)
         }

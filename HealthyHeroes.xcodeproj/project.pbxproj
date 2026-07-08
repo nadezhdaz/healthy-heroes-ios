@@ -6,6 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		1F20A01A2C50000100000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F20A0182C50000100000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1F20A0092C50000100000001;
+			remoteInfo = HealthyHeroes;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1F20A0012C50000100000001 /* HealthyHeroes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthyHeroes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F20A0022C50000100000001 /* HealthyHeroesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HealthyHeroesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -189,16 +199,6 @@
 		};
 /* End PBXTargetDependency section */
 
-/* Begin PBXContainerItemProxy section */
-		1F20A01A2C50000100000001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1F20A0182C50000100000001 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1F20A0092C50000100000001;
-			remoteInfo = HealthyHeroes;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin XCBuildConfiguration section */
 		1F20A01B2C50000100000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -330,11 +330,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Healthy Heroes";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.healthyheroes.mvp;
@@ -358,11 +358,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Healthy Heroes";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.healthyheroes.mvp;
@@ -414,15 +414,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1F20A0192C50000100000001 /* Build configuration list for PBXProject "HealthyHeroes" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1F20A01B2C50000100000001 /* Debug */,
-				1F20A01C2C50000100000001 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		1F20A0102C50000100000001 /* Build configuration list for PBXNativeTarget "HealthyHeroes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -437,6 +428,15 @@
 			buildConfigurations = (
 				1F20A01F2C50000100000001 /* Debug */,
 				1F20A0202C50000100000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1F20A0192C50000100000001 /* Build configuration list for PBXProject "HealthyHeroes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F20A01B2C50000100000001 /* Debug */,
+				1F20A01C2C50000100000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

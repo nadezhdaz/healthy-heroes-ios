@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 @main
@@ -22,14 +23,7 @@ private struct AppRootView: View {
 
     var body: some View {
         NavigationStack(path: $router.path) {
-            MainView(
-                viewModel: MainViewModel(
-                    profileRepository: container.profileRepository,
-                    gameConfigRepository: container.gameConfigRepository,
-                    eventBus: container.eventBus,
-                    router: container.router
-                )
-            )
+            RootFlowView(container: container)
             .navigationDestination(for: AppRoute.self) { route in
                 destination(for: route)
             }
@@ -45,7 +39,11 @@ private struct AppRootView: View {
         case .start:
             StartView(router: container.router)
         case .characterCreation:
-            CharacterCreationView(router: container.router)
+            CharacterCreationView(
+                router: container.router,
+                createCharacterUseCase: container.createCharacterUseCase,
+                eventBus: container.eventBus
+            )
         case .classSelection:
             ClassSelectionView(
                 router: container.router,
@@ -80,13 +78,19 @@ private struct AppRootView: View {
                 eventBus: container.eventBus
             )
         case .wardrobe:
-            WardrobeView(profileRepository: container.profileRepository, eventBus: container.eventBus)
+            WardrobeView(
+                profileRepository: container.profileRepository,
+                equipItemUseCase: container.equipItemUseCase,
+                eventBus: container.eventBus
+            )
         case .stickerAlbum:
             StickerAlbumView(profileRepository: container.profileRepository, eventBus: container.eventBus)
         case let .mysteryPack(rewardIDs):
             MysteryPackView(
                 rewardIDs: rewardIDs,
                 openMysteryPackUseCase: container.openMysteryPackUseCase,
+                markRewardOpenedUseCase: container.markRewardOpenedUseCase,
+                equipItemUseCase: container.equipItemUseCase,
                 profileRepository: container.profileRepository,
                 eventBus: container.eventBus,
                 router: container.router
@@ -101,6 +105,8 @@ private struct AppRootView: View {
             MysteryPackView(
                 rewardIDs: rewardIDs,
                 openMysteryPackUseCase: container.openMysteryPackUseCase,
+                markRewardOpenedUseCase: container.markRewardOpenedUseCase,
+                equipItemUseCase: container.equipItemUseCase,
                 profileRepository: container.profileRepository,
                 eventBus: container.eventBus,
                 router: container.router
@@ -111,6 +117,58 @@ private struct AppRootView: View {
                 openMysteryPackUseCase: container.openMysteryPackUseCase,
                 router: container.router
             )
+        }
+    }
+}
+
+private struct RootFlowView: View {
+    private enum RootState {
+        case loading
+        case onboarding
+        case main
+    }
+
+    @State private var rootState: RootState = .loading
+    @State private var cancellable: AnyCancellable?
+
+    let container: AppDependencyContainer
+
+    var body: some View {
+        Group {
+            switch rootState {
+            case .loading:
+                ProgressView("Loading hero...")
+                    .task {
+                        load()
+                    }
+            case .onboarding:
+                StartView(router: container.router)
+            case .main:
+                MainView(
+                    viewModel: MainViewModel(
+                        profileRepository: container.profileRepository,
+                        gameConfigRepository: container.gameConfigRepository,
+                        eventBus: container.eventBus,
+                        router: container.router
+                    )
+                )
+            }
+        }
+        .onAppear {
+            cancellable = container.eventBus.events.sink { event in
+                if case let .profileUpdated(profile) = event {
+                    rootState = profile.character.selectedClass == nil ? .onboarding : .main
+                }
+            }
+        }
+    }
+
+    private func load() {
+        do {
+            let profile = try container.profileRepository.loadProfile()
+            rootState = profile?.character.selectedClass == nil ? .onboarding : .main
+        } catch {
+            rootState = .onboarding
         }
     }
 }

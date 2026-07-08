@@ -15,6 +15,7 @@ final class AppDependencyContainer: ObservableObject {
     let selectStarterClassUseCase: any SelectStarterClassUseCase
     let logFoodUseCase: any LogFoodUseCase
     let equipItemUseCase: any EquipItemUseCase
+    let markRewardOpenedUseCase: any MarkRewardOpenedUseCase
     let openMysteryPackUseCase: any OpenMysteryPackUseCase
 
     init(
@@ -52,6 +53,9 @@ final class AppDependencyContainer: ObservableObject {
             mapEngine: MapEngine()
         )
         self.equipItemUseCase = EquipItemUseCaseImpl(profileRepository: profileRepository)
+        self.markRewardOpenedUseCase = MarkRewardOpenedUseCaseImpl(
+            profileRepository: profileRepository
+        )
         self.openMysteryPackUseCase = OpenMysteryPackUseCaseImpl(
             rewardCatalogRepository: rewardCatalogRepository
         )
