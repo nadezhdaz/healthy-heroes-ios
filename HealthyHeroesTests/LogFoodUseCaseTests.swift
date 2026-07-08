@@ -62,4 +62,49 @@ final class LogFoodUseCaseTests: XCTestCase {
         XCTAssertEqual(result.updatedProfile.progress.totalXP, 5)
         XCTAssertEqual(profileRepository.profile?.id, result.updatedProfile.id)
     }
+
+    func testRewardOpeningMarksFirstRewardOpenedWithoutDuplicatingInventory() throws {
+        var profile = makeProfile()
+        profile.unlockedRewardIDs = ["wardrobe_leaf_cape"]
+        profile.wardrobe.unlockedItemIDs = ["wardrobe_leaf_cape"]
+        profile.onboarding.hasCompletedFirstFoodLog = true
+        profile.onboarding.hasCompletedFirstQuest = true
+        let profileRepository = InMemoryProfileRepository(profile: profile)
+        let useCase = MarkRewardOpenedUseCaseImpl(profileRepository: profileRepository)
+
+        let updatedProfile = try useCase.markOpened(rewardID: "wardrobe_leaf_cape")
+
+        XCTAssertTrue(updatedProfile.onboarding.hasOpenedFirstReward)
+        XCTAssertFalse(updatedProfile.onboarding.isFirstSessionCompleted)
+        XCTAssertEqual(updatedProfile.unlockedRewardIDs, ["wardrobe_leaf_cape"])
+        XCTAssertEqual(updatedProfile.wardrobe.unlockedItemIDs, ["wardrobe_leaf_cape"])
+        XCTAssertEqual(profileRepository.savedProfiles.last, updatedProfile)
+    }
+
+    func testEquippingUnlockedFirstRewardCompletesFirstSessionAndPersists() throws {
+        var profile = makeProfile()
+        profile.wardrobe.unlockedItemIDs = ["wardrobe_leaf_cape"]
+        profile.onboarding.hasCompletedFirstFoodLog = true
+        profile.onboarding.hasCompletedFirstQuest = true
+        profile.onboarding.hasOpenedFirstReward = true
+        let profileRepository = InMemoryProfileRepository(profile: profile)
+        let useCase = EquipItemUseCaseImpl(profileRepository: profileRepository)
+
+        let updatedProfile = try useCase.equip(itemID: "wardrobe_leaf_cape")
+
+        XCTAssertEqual(updatedProfile.character.equippedItemIDs, ["wardrobe_leaf_cape"])
+        XCTAssertEqual(updatedProfile.wardrobe.equippedItemIDs, ["wardrobe_leaf_cape"])
+        XCTAssertTrue(updatedProfile.onboarding.hasEquippedFirstItem)
+        XCTAssertTrue(updatedProfile.onboarding.isFirstSessionCompleted)
+        XCTAssertEqual(try profileRepository.loadProfile(), updatedProfile)
+    }
+
+    func testEquippingLockedItemThrows() throws {
+        let profileRepository = InMemoryProfileRepository(profile: makeProfile())
+        let useCase = EquipItemUseCaseImpl(profileRepository: profileRepository)
+
+        XCTAssertThrowsError(try useCase.equip(itemID: "wardrobe_leaf_cape")) { error in
+            XCTAssertEqual(error as? UseCaseError, .itemLocked)
+        }
+    }
 }

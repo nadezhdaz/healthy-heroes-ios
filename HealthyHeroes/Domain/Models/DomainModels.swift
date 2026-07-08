@@ -75,6 +75,30 @@ enum CharacterClass: String, Codable, CaseIterable, Identifiable {
         case .sproutMage: "Sprout Mage"
         }
     }
+
+    var isAvailableAtStart: Bool {
+        switch self {
+        case .guardian, .explorer:
+            true
+        case .sproutMage:
+            false
+        }
+    }
+
+    var isLocked: Bool {
+        !isAvailableAtStart
+    }
+
+    var assetID: String {
+        switch self {
+        case .guardian:
+            "class_knight"
+        case .explorer:
+            "class_fairy"
+        case .sproutMage:
+            "class_wizard"
+        }
+    }
 }
 
 struct ProgressState: Codable, Equatable {
@@ -205,6 +229,13 @@ struct OnboardingState: Codable, Equatable {
         self.hasOpenedFirstReward = hasOpenedFirstReward
         self.hasEquippedFirstItem = hasEquippedFirstItem
         self.isFirstSessionCompleted = isFirstSessionCompleted
+    }
+
+    var hasFinishedFirstSessionLoop: Bool {
+        hasCompletedFirstFoodLog
+            && hasCompletedFirstQuest
+            && hasOpenedFirstReward
+            && hasEquippedFirstItem
     }
 }
 

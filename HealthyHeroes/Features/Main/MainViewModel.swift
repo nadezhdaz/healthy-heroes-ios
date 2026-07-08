@@ -35,12 +35,24 @@ final class MainViewModel: ObservableObject {
         profile?.character.selectedClass?.title ?? "Healthy Hero"
     }
 
+    var appearance: CharacterAppearance {
+        profile?.character.appearance ?? CharacterAppearance()
+    }
+
+    var equippedItemIDs: [WardrobeItemID] {
+        profile?.character.equippedItemIDs ?? []
+    }
+
     var totalXPText: String {
         "\(profile?.progress.totalXP ?? 0) XP"
     }
 
     var mapProgressText: String {
         "Map step \(profile?.progress.mapPosition ?? 0)"
+    }
+
+    var progressValue: Double {
+        min(Double(profile?.progress.totalXP ?? 0) / 100.0, 1.0)
     }
 
     var firstSessionCTA: String? {
@@ -55,6 +67,9 @@ final class MainViewModel: ObservableObject {
         }
         if !onboarding.hasOpenedFirstReward {
             return "Open the first reward"
+        }
+        if !onboarding.hasEquippedFirstItem {
+            return "Try on your reward"
         }
         return nil
     }
@@ -102,6 +117,21 @@ final class MainViewModel: ObservableObject {
 
     func openStickerAlbum() {
         router.show(.stickerAlbum)
+    }
+
+    func followFirstSessionCTA() {
+        guard let onboarding = profile?.onboarding else {
+            openFoodLog()
+            return
+        }
+
+        if !onboarding.hasCompletedFirstFoodLog || !onboarding.hasCompletedFirstQuest {
+            openFoodLog()
+        } else if !onboarding.hasOpenedFirstReward {
+            openRewards()
+        } else if !onboarding.hasEquippedFirstItem {
+            openWardrobe()
+        }
     }
 
     private func handle(_ event: AppEvent) {

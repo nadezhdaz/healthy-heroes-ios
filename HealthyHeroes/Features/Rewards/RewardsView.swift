@@ -10,19 +10,32 @@ struct RewardsView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        List(rewards) { reward in
-            Label(reward.title, systemImage: iconName(for: reward.type))
-        }
-        .overlay {
-            if rewards.isEmpty {
-                EmptyStateView(
-                    title: "No rewards yet",
-                    systemImage: "gift",
-                    message: "Complete quests to unlock mystery packs."
-                )
+        LandscapeGameScreen(title: "Rewards", fallbackColor: Color.green.opacity(0.08)) { _ in
+            GamePanel(alignment: .leading) {
+                if rewards.isEmpty {
+                    GameEmptyStateView(
+                        title: "No rewards yet",
+                        systemImage: "gift",
+                        message: "Complete quests to unlock mystery packs."
+                    )
+                } else {
+                    ScrollView {
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12)
+                            ],
+                            spacing: 12
+                        ) {
+                            ForEach(rewards) { reward in
+                                RewardCard(reward: reward, systemImage: iconName(for: reward.type))
+                            }
+                        }
+                    }
+                }
             }
         }
-        .navigationTitle("Rewards")
         .task {
             load()
         }
@@ -53,23 +66,23 @@ struct RewardsView: View {
     }
 }
 
-private struct EmptyStateView: View {
-    let title: String
+private struct RewardCard: View {
+    let reward: Reward
     let systemImage: String
-    let message: String
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             Image(systemName: systemImage)
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-            Text(title)
+                .font(.system(size: 42))
+                .foregroundStyle(.green)
+            Text(reward.title)
                 .font(.headline)
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .lineLimit(2)
                 .multilineTextAlignment(.center)
         }
-        .padding(24)
+        .frame(maxWidth: .infinity, minHeight: 128)
+        .padding(14)
+        .background(Color.white.opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

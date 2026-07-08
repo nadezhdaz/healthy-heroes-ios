@@ -9,18 +9,32 @@ struct QuestsView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        List(quests) { quest in
-            VStack(alignment: .leading, spacing: 6) {
-                Text(quest.title)
-                    .font(.headline)
-                ProgressView(value: Double(quest.currentProgress), total: Double(quest.target))
-                Text("\(quest.currentProgress)/\(quest.target) • \(quest.status.rawValue)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        LandscapeGameScreen(title: "Quests", fallbackColor: Color.green.opacity(0.08)) { _ in
+            GamePanel(alignment: .leading) {
+                if quests.isEmpty {
+                    GameEmptyStateView(
+                        title: "No quests",
+                        systemImage: "checklist",
+                        message: "Quests will appear here."
+                    )
+                } else {
+                    ScrollView {
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12)
+                            ],
+                            spacing: 12
+                        ) {
+                            ForEach(quests) { quest in
+                                QuestCard(quest: quest)
+                            }
+                        }
+                    }
+                }
             }
-            .padding(.vertical, 6)
         }
-        .navigationTitle("Quests")
         .task {
             load()
         }
@@ -35,5 +49,26 @@ struct QuestsView: View {
 
     private func load() {
         quests = (try? profileRepository.loadProfile()?.quests) ?? []
+    }
+}
+
+private struct QuestCard: View {
+    let quest: Quest
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(quest.title)
+                .font(.headline)
+                .lineLimit(2)
+            ProgressView(value: Double(quest.currentProgress), total: Double(quest.target))
+                .tint(.green)
+            Text("\(quest.currentProgress)/\(quest.target) - \(quest.status.rawValue)")
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 118, alignment: .leading)
+        .padding(14)
+        .background(Color.white.opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

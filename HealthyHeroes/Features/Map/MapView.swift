@@ -9,19 +9,32 @@ struct MapView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "map.fill")
-                .font(.system(size: 72))
-                .foregroundStyle(.green)
-            Text("Map Position \(progress.mapPosition)")
-                .font(.title.bold())
-            Text("\(progress.totalXP) total XP")
-                .foregroundStyle(.secondary)
-            ProgressView(value: Double(progress.mapPosition), total: 20)
-                .padding(.horizontal)
+        LandscapeGameScreen(
+            title: "Map",
+            backgroundAssetID: "map_background",
+            fallbackColor: Color.green.opacity(0.1)
+        ) { size in
+            GamePanel {
+                HStack(spacing: 22) {
+                    Image(systemName: "map.fill")
+                        .font(.system(size: min(82, size.height * 0.18)))
+                        .foregroundStyle(.green)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Map Position \(progress.mapPosition)")
+                            .font(.title2.bold())
+                            .lineLimit(1)
+                        Text("\(progress.totalXP) total XP")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        ProgressView(value: Double(progress.mapPosition), total: 20)
+                            .tint(.green)
+                    }
+                    .frame(maxWidth: 440, alignment: .leading)
+                }
+            }
+            .frame(maxWidth: min(620, size.width * 0.64), maxHeight: min(190, size.height * 0.48))
         }
-        .padding(24)
-        .navigationTitle("Map")
         .task {
             load()
         }

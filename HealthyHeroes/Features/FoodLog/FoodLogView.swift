@@ -8,35 +8,57 @@ struct FoodLogView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Log one healthy choice")
-                .font(.title.bold())
-            Text("One tap equals one progress action. Parents decide what counts.")
-                .font(.body)
-                .foregroundStyle(.secondary)
+        LandscapeGameScreen(
+            title: "Food Log",
+            backgroundAssetID: "food_log_background",
+            fallbackColor: Color.orange.opacity(0.1)
+        ) { size in
+            HStack(spacing: 18) {
+                GamePanel(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Log healthy food")
+                            .font(.title2.bold())
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                        Text("One tap gives progress.")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.82)
 
-            VStack(spacing: 12) {
-                ForEach(viewModel.categories) { category in
-                    Button {
-                        viewModel.log(category)
-                    } label: {
-                        Label(category.title, systemImage: iconName(for: category))
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 52)
+                        if let result = viewModel.lastResult {
+                            ResultSummary(result: result)
+                                .frame(maxHeight: 128)
+                        } else {
+                            Spacer(minLength: 0)
+                            Image(systemName: "fork.knife")
+                                .font(.system(size: min(72, size.height * 0.16), weight: .semibold))
+                                .foregroundStyle(.green.opacity(0.72))
+                                .frame(maxWidth: .infinity)
+                            Spacer(minLength: 0)
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.isLogging)
+                }
+                .frame(width: min(260, size.width * 0.28))
+
+                HStack(spacing: 12) {
+                    ForEach(viewModel.categories) { category in
+                        Button {
+                            viewModel.log(category)
+                        } label: {
+            FoodCategoryTile(
+                title: category.title,
+                assetID: assetID(for: category),
+                iconName: iconName(for: category)
+            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(viewModel.isLogging)
+                    }
                 }
             }
-
-            if let result = viewModel.lastResult {
-                ResultSummary(result: result)
-            }
-
-            Spacer()
+            .frame(maxHeight: min(210, size.height * 0.52))
         }
-        .padding(20)
-        .navigationTitle("Food Log")
         .overlay(alignment: .bottom) {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -62,6 +84,48 @@ struct FoodLogView: View {
         case .custom:
             "plus.circle"
         }
+    }
+
+    private func assetID(for category: FoodCategory) -> String {
+        switch category {
+        case .fruit:
+            "fruit_icon"
+        case .vegetable:
+            "vegetable_icon"
+        case .water:
+            "water_icon"
+        case .healthyMeal:
+            "healthy_meal_icon"
+        case .custom:
+            "healthy_meal_icon"
+        }
+    }
+}
+
+private struct FoodCategoryTile: View {
+    let title: String
+    let assetID: String
+    let iconName: String
+
+    var body: some View {
+        GamePanel {
+            VStack(spacing: 8) {
+                DesignImageView(assetID: assetID, contentMode: .fit) {
+                    Image(systemName: iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.green)
+                }
+                .frame(width: 42, height: 42)
+
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.78)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(minWidth: 106, maxHeight: 156)
     }
 }
 

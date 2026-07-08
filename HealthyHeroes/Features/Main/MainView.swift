@@ -8,31 +8,44 @@ struct MainView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+        LandscapeGameScreen(
+            backgroundAssetID: "main_forest_background",
+            fallbackColor: Color.green.opacity(0.12),
+            showsBackButton: false
+        ) { size in
+            VStack(spacing: 12) {
                 HeroSummaryCard(
                     title: viewModel.heroTitle,
                     xpText: viewModel.totalXPText,
-                    mapText: viewModel.mapProgressText
+                    mapText: viewModel.mapProgressText,
+                    progressValue: viewModel.progressValue,
+                    appearance: viewModel.appearance,
+                    equippedItemIDs: viewModel.equippedItemIDs
                 )
+                .frame(height: min(142, size.height * 0.31))
 
-                if let firstSessionCTA = viewModel.firstSessionCTA {
-                    FirstSessionCTA(title: firstSessionCTA, action: viewModel.openFoodLog)
+                VStack(spacing: 10) {
+                    if let firstSessionCTA = viewModel.firstSessionCTA {
+                        FirstSessionCTA(
+                            title: firstSessionCTA,
+                            action: viewModel.followFirstSessionCTA
+                        )
+                        .frame(height: 48)
+                    }
+
+                    MainActionGrid(
+                        hasUnlockedRewards: viewModel.hasUnlockedRewards,
+                        openFoodLog: viewModel.openFoodLog,
+                        openQuests: viewModel.openQuests,
+                        openMap: viewModel.openMap,
+                        openRewards: viewModel.openRewards,
+                        openWardrobe: viewModel.openWardrobe,
+                        openStickerAlbum: viewModel.openStickerAlbum
+                    )
                 }
-
-                MainActionGrid(
-                    hasUnlockedRewards: viewModel.hasUnlockedRewards,
-                    openFoodLog: viewModel.openFoodLog,
-                    openQuests: viewModel.openQuests,
-                    openMap: viewModel.openMap,
-                    openRewards: viewModel.openRewards,
-                    openWardrobe: viewModel.openWardrobe,
-                    openStickerAlbum: viewModel.openStickerAlbum
-                )
+                .frame(maxHeight: .infinity)
             }
-            .padding(20)
         }
-        .navigationTitle("Healthy Heroes")
         .task {
             viewModel.load()
         }
@@ -52,23 +65,33 @@ private struct HeroSummaryCard: View {
     let title: String
     let xpText: String
     let mapText: String
+    let progressValue: Double
+    let appearance: CharacterAppearance
+    let equippedItemIDs: [WardrobeItemID]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.largeTitle.bold())
-            Text("Small choices move your hero forward.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-            HStack(spacing: 12) {
-                StatPill(text: xpText, systemImage: "sparkles")
-                StatPill(text: mapText, systemImage: "map")
+        GamePanel(alignment: .leading) {
+            HStack(alignment: .center, spacing: 16) {
+                HeroPreview(appearance: appearance, equippedItemIDs: equippedItemIDs)
+                    .frame(width: 112, height: 116)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(title)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                    Text("Feed your hero to move forward.")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        StatPill(text: xpText, systemImage: "sparkles")
+                        StatPill(text: mapText, systemImage: "map")
+                    }
+                    ProgressView(value: progressValue, total: 1)
+                        .tint(.green)
+                }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(Color.green.opacity(0.14))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -115,13 +138,8 @@ private struct MainActionGrid: View {
     let openWardrobe: () -> Void
     let openStickerAlbum: () -> Void
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
-
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 12) {
+        HStack(spacing: 10) {
             MainActionButton(title: "Food Log", systemImage: "plus.circle.fill", action: openFoodLog)
             MainActionButton(title: "Quests", systemImage: "checklist", action: openQuests)
             MainActionButton(title: "Map", systemImage: "map.fill", action: openMap)
@@ -145,13 +163,16 @@ private struct MainActionButton: View {
         Button(action: action) {
             VStack(spacing: 10) {
                 Image(systemName: systemImage)
-                    .font(.title2)
+                    .font(.title3)
                 Text(title)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
                     .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity, minHeight: 96)
+            .frame(maxWidth: .infinity, minHeight: 58)
+            .padding(.vertical, 4)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
     }
 }
