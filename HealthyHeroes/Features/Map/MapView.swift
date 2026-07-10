@@ -10,30 +10,33 @@ struct MapView: View {
 
     var body: some View {
         LandscapeGameScreen(
-            title: "Map",
             backgroundAssetID: "map_background",
-            fallbackColor: Color.green.opacity(0.1)
+            backgroundContentMode: .fit,
+            fallbackColor: Color(red: 0.39, green: 0.78, blue: 0.24),
+            showsBackButton: true
         ) { size in
-            GamePanel {
-                HStack(spacing: 22) {
-                    Image(systemName: "map.fill")
-                        .font(.system(size: min(82, size.height * 0.18)))
-                        .foregroundStyle(.green)
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Map Position \(progress.mapPosition)")
-                            .font(.title2.bold())
-                            .lineLimit(1)
-                        Text("\(progress.totalXP) total XP")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 6) {
+                        Text("STEP \(progress.mapPosition)")
+                            .font(GameDesign.font(18, weight: .black))
+                            .foregroundStyle(GameDesign.green)
+                        Text("\(progress.totalXP) XP")
+                            .font(GameDesign.font(14, weight: .bold))
+                            .foregroundStyle(GameDesign.green)
                         ProgressView(value: Double(progress.mapPosition), total: 20)
-                            .tint(.green)
+                            .tint(GameDesign.green)
+                            .frame(width: min(220, size.width * 0.22))
                     }
-                    .frame(maxWidth: 440, alignment: .leading)
+                    .padding(16)
+                    .background(GameDesign.cream.opacity(0.95))
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
+                .padding(.trailing, 24)
+                .padding(.bottom, 18)
             }
-            .frame(maxWidth: min(620, size.width * 0.64), maxHeight: min(190, size.height * 0.48))
         }
         .task {
             load()

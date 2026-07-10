@@ -10,7 +10,12 @@ struct RewardsView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        LandscapeGameScreen(title: "Rewards", fallbackColor: Color.green.opacity(0.08)) { _ in
+        LandscapeGameScreen(
+            title: "REWARDS",
+            backgroundAssetID: "rewards_background",
+            fallbackColor: Color.orange.opacity(0.12),
+            titleColor: GameDesign.purple
+        ) { size in
             GamePanel(alignment: .leading) {
                 if rewards.isEmpty {
                     GameEmptyStateView(
@@ -21,11 +26,7 @@ struct RewardsView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(
-                            columns: [
-                                GridItem(.flexible(), spacing: 12),
-                                GridItem(.flexible(), spacing: 12),
-                                GridItem(.flexible(), spacing: 12)
-                            ],
+                            columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 5),
                             spacing: 12
                         ) {
                             ForEach(rewards) { reward in
@@ -72,17 +73,21 @@ private struct RewardCard: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Image(systemName: systemImage)
-                .font(.system(size: 42))
-                .foregroundStyle(.green)
+            DesignImageView(assetID: reward.assetID, contentMode: .fit) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 42))
+                    .foregroundStyle(GameDesign.purple)
+            }
+            .frame(width: 58, height: 58)
             Text(reward.title)
-                .font(.headline)
+                .font(GameDesign.font(14, weight: .bold))
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, minHeight: 128)
-        .padding(14)
-        .background(Color.white.opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .frame(maxWidth: .infinity, minHeight: 96)
+        .padding(10)
+        .background(GameDesign.cream)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
     }
 }

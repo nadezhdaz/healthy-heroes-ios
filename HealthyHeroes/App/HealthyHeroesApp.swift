@@ -1,13 +1,39 @@
 import Combine
+import CoreText
 import SwiftUI
 
 @main
 struct HealthyHeroesApp: App {
     @StateObject private var container = AppDependencyContainer.live()
 
+    init() {
+        Self.registerDesignFonts()
+    }
+
     var body: some Scene {
         WindowGroup {
             AppRootView(container: container)
+        }
+    }
+
+    private static func registerDesignFonts() {
+        let fontNames = [
+            "MPLUSRounded1c-Regular",
+            "MPLUSRounded1c-Medium",
+            "MPLUSRounded1c-Bold",
+            "MPLUSRounded1c-ExtraBold",
+            "MPLUSRounded1c-Black",
+            "MPLUSRounded1c-Light",
+            "MPLUSRounded1c-Thin"
+        ]
+
+        for fontName in fontNames {
+            guard let url = Bundle.main.url(
+                forResource: fontName,
+                withExtension: "ttf",
+                subdirectory: "Resources/Design/FONT/M_PLUS_Rounded_1c"
+            ) else { continue }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
         }
     }
 }
