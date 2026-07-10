@@ -9,7 +9,12 @@ struct StickerAlbumView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        LandscapeGameScreen(title: "Sticker Album", fallbackColor: Color.yellow.opacity(0.12)) { _ in
+        LandscapeGameScreen(
+            title: "REWARDS",
+            backgroundAssetID: "rewards_background",
+            fallbackColor: Color.yellow.opacity(0.12),
+            titleColor: GameDesign.purple
+        ) { _ in
             GamePanel(alignment: .leading) {
                 if stickerIDs.isEmpty {
                     GameEmptyStateView(
@@ -21,10 +26,12 @@ struct StickerAlbumView: View {
                     ScrollView {
                         LazyVGrid(
                             columns: [
-                                GridItem(.flexible(), spacing: 12),
-                                GridItem(.flexible(), spacing: 12),
-                                GridItem(.flexible(), spacing: 12),
-                                GridItem(.flexible(), spacing: 12)
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10)
                             ],
                             spacing: 12
                         ) {
@@ -64,16 +71,27 @@ private struct StickerCard: View {
                     .scaledToFit()
                     .foregroundStyle(.yellow)
             }
-            .frame(width: 58, height: 58)
+            .frame(width: 48, height: 48)
 
-            Text(stickerID)
-                .font(.headline)
+            Text(displayName)
+                .font(GameDesign.font(13, weight: .bold))
                 .lineLimit(1)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, minHeight: 126)
-        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 92)
+        .padding(9)
         .background(Color.white.opacity(0.55))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var displayName: String {
+        switch stickerID {
+        case "sticker_star", "reward_star_sticker": "Shiny Star Sticker"
+        case "sticker_apple": "Apple Sticker"
+        default:
+            stickerID
+                .replacingOccurrences(of: "_", with: " ")
+                .capitalized
+        }
     }
 }

@@ -13,7 +13,7 @@ struct WardrobeView: View {
     let eventBus: AppEventBus
 
     var body: some View {
-        LandscapeGameScreen(title: "Wardrobe", fallbackColor: Color.green.opacity(0.08)) { size in
+        LandscapeGameScreen(title: "Wardrobe", backgroundAssetID: "wardrobe_background", fallbackColor: Color.green.opacity(0.08)) { size in
             HStack(spacing: 18) {
                 GamePanel {
                     HeroPreview(appearance: appearance, equippedItemIDs: equippedItemIDs)
@@ -140,8 +140,9 @@ private struct WardrobeItemCard: View {
             }
             .frame(maxWidth: .infinity, minHeight: 144)
             .padding(12)
-            .background(Color.white.opacity(0.55))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(GameDesign.cream)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
         .buttonStyle(.plain)
     }

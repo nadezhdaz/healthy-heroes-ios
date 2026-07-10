@@ -1,9 +1,37 @@
 import SwiftUI
 
+enum GameDesign {
+    static let cream = Color(red: 0.99, green: 0.96, blue: 0.78)
+    static let green = Color(red: 0.25, green: 0.55, blue: 0.12)
+    static let purple = Color(red: 0.43, green: 0.30, blue: 0.90)
+    static let cornerRadius: CGFloat = 22
+
+    static func font(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        Font.custom("MPLUSRounded1c-\(weight.fontName)", size: size)
+    }
+}
+
+private extension Font.Weight {
+    var fontName: String {
+        switch self {
+        case .black: return "Black"
+        case .heavy: return "ExtraBold"
+        case .bold: return "Bold"
+        case .semibold: return "Medium"
+        case .medium: return "Medium"
+        case .light: return "Light"
+        case .thin: return "Thin"
+        default: return "Regular"
+        }
+    }
+}
+
 struct LandscapeGameScreen<Content: View>: View {
     let title: String?
     let backgroundAssetID: String?
+    let backgroundContentMode: ContentMode
     let fallbackColor: Color
+    let titleColor: Color
     let showsBackButton: Bool
     let content: (CGSize) -> Content
 
@@ -12,13 +40,17 @@ struct LandscapeGameScreen<Content: View>: View {
     init(
         title: String? = nil,
         backgroundAssetID: String? = nil,
+        backgroundContentMode: ContentMode = .fill,
         fallbackColor: Color = Color.green.opacity(0.12),
+        titleColor: Color = .primary,
         showsBackButton: Bool = true,
         @ViewBuilder content: @escaping (CGSize) -> Content
     ) {
         self.title = title
         self.backgroundAssetID = backgroundAssetID
+        self.backgroundContentMode = backgroundContentMode
         self.fallbackColor = fallbackColor
+        self.titleColor = titleColor
         self.showsBackButton = showsBackButton
         self.content = content
     }
@@ -26,36 +58,65 @@ struct LandscapeGameScreen<Content: View>: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                background
+                screenBackdrop
 
-                VStack(spacing: 12) {
+                if backgroundContentMode == .fit {
+                    fittedBackground(in: proxy)
+                }
+
+                VStack(spacing: 10) {
                     if title != nil || showsBackButton {
                         header
                     }
 
                     content(proxy.size)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 .padding(.leading, horizontalPadding(for: proxy, edgeInset: proxy.safeAreaInsets.leading))
                 .padding(.trailing, horizontalPadding(for: proxy, edgeInset: proxy.safeAreaInsets.trailing))
-                .padding(.top, max(12, proxy.safeAreaInsets.top + 8))
-                .padding(.bottom, max(36, proxy.safeAreaInsets.bottom + 16))
-                .frame(width: proxy.size.width, height: proxy.size.height)
+                .padding(.top, verticalTopPadding(for: proxy))
+                .padding(.bottom, verticalBottomPadding(for: proxy))
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
             }
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
 
     @ViewBuilder
-    private var background: some View {
+    private var screenBackdrop: some View {
+        ZStack {
+            fallbackColor
+
+            if let backgroundAssetID {
+                if backgroundContentMode == .fit {
+                    DesignImageView(assetID: backgroundAssetID, contentMode: .fill) {
+                        fallbackColor
+                    }
+                    .scaleEffect(1.08)
+                    .blur(radius: 22)
+                    .overlay(GameDesign.green.opacity(0.10))
+                } else {
+                    DesignImageView(assetID: backgroundAssetID, contentMode: .fill) {
+                        fallbackColor
+                    }
+                }
+            }
+        }
+        .ignoresSafeArea()
+    }
+
+    @ViewBuilder
+    private func fittedBackground(in proxy: GeometryProxy) -> some View {
         if let backgroundAssetID {
-            DesignImageView(assetID: backgroundAssetID, contentMode: .fill) {
+            DesignImageView(assetID: backgroundAssetID, contentMode: .fit) {
                 fallbackColor
             }
-            .ignoresSafeArea()
-        } else {
-            fallbackColor.ignoresSafeArea()
+            .frame(
+                width: min(proxy.size.width, proxy.size.height * 4 / 3),
+                height: proxy.size.height
+            )
         }
     }
 
@@ -66,13 +127,15 @@ struct LandscapeGameScreen<Content: View>: View {
                     Button {
                         dismiss()
                     } label: {
-                        Label("Back", systemImage: "chevron.left")
-                            .labelStyle(.iconOnly)
-                            .font(.headline)
-                            .frame(width: 42, height: 42)
+                        DesignImageView(assetID: "back_button", contentMode: .fit) {
+                            Image(systemName: "chevron.left")
+                                .font(.title2.bold())
+                                .foregroundStyle(.white)
+                        }
+                        .frame(width: 54, height: 54)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Back")
                 }
 
                 Spacer()
@@ -80,17 +143,26 @@ struct LandscapeGameScreen<Content: View>: View {
 
             if let title {
                 Text(title)
-                    .font(.title2.bold())
+                    .font(GameDesign.font(28, weight: .black))
+                    .foregroundStyle(titleColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                     .padding(.horizontal, 58)
             }
         }
-        .frame(height: 44)
+        .frame(height: 54)
     }
 
     private func horizontalPadding(for proxy: GeometryProxy, edgeInset: CGFloat) -> CGFloat {
         max(24, edgeInset + 12, min(56, proxy.size.width * 0.035))
+    }
+
+    private func verticalTopPadding(for proxy: GeometryProxy) -> CGFloat {
+        max(6, proxy.safeAreaInsets.top + 4)
+    }
+
+    private func verticalBottomPadding(for proxy: GeometryProxy) -> CGFloat {
+        max(10, proxy.safeAreaInsets.bottom + 4)
     }
 }
 
@@ -107,8 +179,9 @@ struct GamePanel<Content: View>: View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
             .padding(18)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(GameDesign.cream.opacity(0.96))
+            .clipShape(RoundedRectangle(cornerRadius: GameDesign.cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.16), radius: 8, y: 4)
     }
 }
 

@@ -77,7 +77,7 @@ private struct HeroSummaryCard: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text(title)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(GameDesign.font(28, weight: .bold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
                     Text("Feed your hero to move forward.")
@@ -162,17 +162,33 @@ private struct MainActionButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 10) {
-                Image(systemName: systemImage)
-                    .font(.title3)
+                DesignImageView(assetID: assetID(for: title), contentMode: .fit) {
+                    Image(systemName: systemImage)
+                        .font(.title3)
+                }
+                .frame(width: 58, height: 42)
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(GameDesign.font(13, weight: .bold))
                     .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity, minHeight: 58)
-            .padding(.vertical, 4)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(maxWidth: .infinity, minHeight: 92)
+            .padding(.vertical, 8)
+            .background(GameDesign.cream.opacity(0.96))
+            .clipShape(RoundedRectangle(cornerRadius: GameDesign.cornerRadius, style: .continuous))
+            .shadow(color: .black.opacity(0.14), radius: 6, y: 3)
         }
         .buttonStyle(.plain)
+    }
+
+    private func assetID(for title: String) -> String {
+        switch title {
+        case "Food Log": return "menu_food"
+        case "Quests": return "menu_quests"
+        case "Map": return "menu_map"
+        case "Rewards": return "menu_rewards"
+        case "Wardrobe": return "menu_wardrobe"
+        case "Stickers": return "menu_stickers"
+        default: return ""
+        }
     }
 }
