@@ -11,6 +11,7 @@ final class FoodLogViewModel: ObservableObject {
     private let logFoodUseCase: any LogFoodUseCase
     private let eventBus: AppEventBus
     private let router: AppRouter
+    private var feedbackDismissalTask: Task<Void, Never>?
 
     init(
         logFoodUseCase: any LogFoodUseCase,
@@ -29,13 +30,16 @@ final class FoodLogViewModel: ObservableObject {
     func log(_ category: FoodCategory, customTitle: String?) {
         guard !isLogging else { return }
 
+        feedbackDismissalTask?.cancel()
+        lastResult = nil
+        errorMessage = nil
         isLogging = true
         defer { isLogging = false }
 
         do {
             let result = try logFoodUseCase.log(category: category, customTitle: customTitle)
             lastResult = result
-            errorMessage = nil
+            scheduleResultDismissal()
 
             eventBus.post(.foodLogged(result.foodLogEntry))
             eventBus.post(.profileUpdated(result.updatedProfile))
@@ -49,7 +53,16 @@ final class FoodLogViewModel: ObservableObject {
                 router.present(.mysteryPack(result.unlockedRewardIDs))
             }
         } catch {
+            lastResult = nil
             errorMessage = "Could not log this choice. Please try again."
+        }
+    }
+
+    private func scheduleResultDismissal() {
+        feedbackDismissalTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard !Task.isCancelled else { return }
+            self?.lastResult = nil
         }
     }
 }

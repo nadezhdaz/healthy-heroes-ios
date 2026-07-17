@@ -1,16 +1,20 @@
+import ImageIO
 import SwiftUI
 import UIKit
 
 struct DesignAsset: Equatable {
     var resourceName: String
     var fileExtension: String = "png"
+    var maxPixelSize: Int = 1_024
 }
 
 struct AssetResolver {
+    private let imageLoader = DesignImageLoader.shared
+
     func asset(for assetID: String) -> DesignAsset? {
         switch assetID {
         case "start_background":
-            DesignAsset(resourceName: "Start-screen")
+            DesignAsset(resourceName: "Start-screen", maxPixelSize: 2_048)
         case "back_button":
             DesignAsset(resourceName: "Back")
         case "settings_button":
@@ -20,11 +24,11 @@ struct AssetResolver {
         case "logo":
             DesignAsset(resourceName: "logo-kid-nobackgrnd")
         case "main_forest_background":
-            DesignAsset(resourceName: "Forest-background")
+            DesignAsset(resourceName: "Forest-background", maxPixelSize: 2_048)
         case "rewards_background":
-            DesignAsset(resourceName: "Rewards-background")
+            DesignAsset(resourceName: "Rewards-background", maxPixelSize: 2_048)
         case "wardrobe_background":
-            DesignAsset(resourceName: "customize-background")
+            DesignAsset(resourceName: "customize-background", maxPixelSize: 2_048)
         case "menu_food":
             DesignAsset(resourceName: "Food diary tab")
         case "menu_quests":
@@ -38,13 +42,13 @@ struct AssetResolver {
         case "menu_stickers":
             DesignAsset(resourceName: "Stickers_Log")
         case "food_log_background":
-            DesignAsset(resourceName: "Food_log-background")
+            DesignAsset(resourceName: "Food_log-background", maxPixelSize: 2_048)
         case "map_background":
-            DesignAsset(resourceName: "map-screen")
+            DesignAsset(resourceName: "map-screen", maxPixelSize: 2_048)
         case "mystery_pack_closed":
             DesignAsset(resourceName: "Mystery-pack-closed")
         case "mystery_pack_background":
-            DesignAsset(resourceName: "Rewards-Mystery-Pack-background")
+            DesignAsset(resourceName: "Rewards-Mystery-Pack-background", maxPixelSize: 2_048)
         case "mystery_pack_half_opened":
             DesignAsset(resourceName: "Mystery-pack-Half-opened")
         case "mystery_pack_opened":
@@ -72,7 +76,7 @@ struct AssetResolver {
         case "healthy_meal_icon":
             DesignAsset(resourceName: "chicken")
         case "food_diary_field":
-            DesignAsset(resourceName: "Food Diary_Field background")
+            DesignAsset(resourceName: "Food Diary_Field background", maxPixelSize: 2_048)
         case "food_card_misc": DesignAsset(resourceName: "Card_Misc")
         case "food_card_water200": DesignAsset(resourceName: "Card_Water200")
         case "food_card_water300": DesignAsset(resourceName: "Card_Water300")
@@ -84,7 +88,7 @@ struct AssetResolver {
         case "food_card_banana": DesignAsset(resourceName: "Card_Banana")
         case "food_card_tomato": DesignAsset(resourceName: "Card_Tomato")
         case "food_card_strawberry": DesignAsset(resourceName: "Card_Strawberry")
-        case "food_card_peas": DesignAsset(resourceName: "Card_Peas")
+        case "food_card_peas": DesignAsset(resourceName: "catg_Peas")
         case "food_card_carrot": DesignAsset(resourceName: "Card_Carrot")
         case "food_card_eggs": DesignAsset(resourceName: "Card_Eggs")
         case "food_card_cucumber": DesignAsset(resourceName: "Card_Cucumber")
@@ -92,7 +96,7 @@ struct AssetResolver {
         case "food_card_cheese": DesignAsset(resourceName: "Card_Cheese")
         case "food_card_apple": DesignAsset(resourceName: "Card_Apple")
         case "quests_background":
-            DesignAsset(resourceName: "Quests-background")
+            DesignAsset(resourceName: "Quests-background", maxPixelSize: 2_048)
         case "quest_icon_fruit":
             DesignAsset(resourceName: "Icon_Eat a fruit")
         case "quest_icon_vegetable":
@@ -118,15 +122,57 @@ struct AssetResolver {
         reward.assetID
     }
 
-    func uiImage(for assetID: String) -> UIImage? {
-        guard let asset = asset(for: assetID),
-              let path = Bundle.main.path(
-                forResource: asset.resourceName,
-                ofType: asset.fileExtension
-              ) else {
+    func uiImage(for assetID: String) async -> UIImage? {
+        guard let asset = asset(for: assetID) else { return nil }
+        return await imageLoader.image(for: asset)
+    }
+}
+
+private actor DesignImageLoader {
+    static let shared = DesignImageLoader()
+
+    private let cache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = 64
+        cache.totalCostLimit = 64 * 1_024 * 1_024
+        return cache
+    }()
+
+    func image(for asset: DesignAsset) -> UIImage? {
+        let cacheKey = "\(asset.resourceName).\(asset.fileExtension)-\(asset.maxPixelSize)" as NSString
+        if let cachedImage = cache.object(forKey: cacheKey) {
+            return cachedImage
+        }
+
+        guard let url = Bundle.main.url(
+            forResource: asset.resourceName,
+            withExtension: asset.fileExtension
+        ) else {
             return nil
         }
-        return UIImage(contentsOfFile: path)
+
+        let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions) else {
+            return nil
+        }
+
+        let downsampleOptions = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceThumbnailMaxPixelSize: asset.maxPixelSize,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true
+        ] as CFDictionary
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, downsampleOptions) else {
+            return nil
+        }
+
+        let image = UIImage(cgImage: cgImage)
+        cache.setObject(
+            image,
+            forKey: cacheKey,
+            cost: cgImage.bytesPerRow * cgImage.height
+        )
+        return image
     }
 }
 
@@ -135,15 +181,22 @@ struct DesignImageView<Placeholder: View>: View {
     let contentMode: ContentMode
     @ViewBuilder var placeholder: () -> Placeholder
 
+    @State private var image: UIImage?
     private let resolver = AssetResolver()
 
     var body: some View {
-        if let image = resolver.uiImage(for: assetID) {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: contentMode)
-        } else {
-            placeholder()
+        Group {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+            } else {
+                placeholder()
+            }
+        }
+        .task(id: assetID) {
+            image = nil
+            image = await resolver.uiImage(for: assetID)
         }
     }
 }
