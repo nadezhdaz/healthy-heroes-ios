@@ -52,6 +52,8 @@ struct FoodLogView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(viewModel.isLogging)
+                                .accessibilityLabel(food.title)
+                                .accessibilityHint("Logs this food choice")
                             }
                         }
                         .padding(.horizontal, 28)

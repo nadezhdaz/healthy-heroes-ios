@@ -30,8 +30,7 @@ struct HealthyHeroesApp: App {
         for fontName in fontNames {
             guard let url = Bundle.main.url(
                 forResource: fontName,
-                withExtension: "ttf",
-                subdirectory: "Resources/Design/FONT/M_PLUS_Rounded_1c"
+                withExtension: "ttf"
             ) else { continue }
             CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
         }

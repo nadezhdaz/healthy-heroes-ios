@@ -16,6 +16,8 @@ struct StartView: View {
             }
             .frame(width: min(260, size.width * 0.25), height: min(220, size.height * 0.32))
             .contentShape(Rectangle())
+            .accessibilityLabel("Play")
+            .accessibilityHint("Create your hero")
             .offset(x: size.width * 0.06, y: size.height * 0.20)
         }
     }
