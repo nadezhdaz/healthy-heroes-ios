@@ -47,6 +47,10 @@ struct CharacterCreationView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityLabel("\(preset.title) hero appearance")
+                                .accessibilityValue(
+                                    selectedPreset.id == preset.id ? "Selected" : "Not selected"
+                                )
                             }
                         }
 
@@ -60,6 +64,7 @@ struct CharacterCreationView: View {
                                 .frame(maxWidth: .infinity, minHeight: 52)
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(GameDesign.green)
                     }
                 }
             }
@@ -95,8 +100,8 @@ struct AppearancePreset: Identifiable, Equatable {
 
     static let defaults: [AppearancePreset] = [
         AppearancePreset(
-            id: "bright",
-            title: "Bright",
+            id: "look-1",
+            title: "Look 1",
             appearance: CharacterAppearance(
                 hairStyle: "hero_head_1",
                 faceStyle: "hero_face_01",
@@ -106,8 +111,8 @@ struct AppearancePreset: Identifiable, Equatable {
             )
         ),
         AppearancePreset(
-            id: "bold",
-            title: "Bold",
+            id: "look-2",
+            title: "Look 2",
             appearance: CharacterAppearance(
                 hairStyle: "hero_head_2",
                 faceStyle: "hero_face_01",
@@ -117,8 +122,8 @@ struct AppearancePreset: Identifiable, Equatable {
             )
         ),
         AppearancePreset(
-            id: "calm",
-            title: "Calm",
+            id: "look-3",
+            title: "Look 3",
             appearance: CharacterAppearance(
                 hairStyle: "hero_head_3",
                 faceStyle: "hero_face_01",
@@ -139,40 +144,53 @@ struct HeroPreview: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.white.opacity(0.5))
 
-            VStack(spacing: -24) {
-                DesignImageView(assetID: appearance.hairStyle, contentMode: .fit) {
-                    DesignImageView(assetID: "hero_head_1", contentMode: .fit) {
-                        Image(systemName: "face.smiling.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(.yellow)
-                    }
-                }
-                .frame(height: 104)
-
-                ZStack(alignment: .top) {
-                    DesignImageView(assetID: "hero_body", contentMode: .fit) {
-                        Image(systemName: "figure.stand")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(.green)
-                    }
-
-                    if equippedItemIDs.contains("wardrobe_leaf_cape") {
-                        DesignImageView(assetID: "wardrobe_leaf_cape", contentMode: .fit) {
-                            Image(systemName: "leaf.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundStyle(.green)
-                        }
-                        .frame(width: 82, height: 82)
-                        .offset(y: -4)
-                    }
-                }
-                .frame(height: 160)
-            }
+            HeroArtwork(
+                headAssetID: appearance.hairStyle,
+                equippedItemIDs: equippedItemIDs
+            )
             .padding(16)
         }
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Hero preview")
+    }
+}
+
+private struct HeroArtwork: View {
+    // The base artwork already contains a head. Show only the lower body so
+    // the selected head replaces it instead of blending with it.
+    private static let visibleBodyFraction: CGFloat = 0.64
+
+    let headAssetID: String
+    let equippedItemIDs: [WardrobeItemID]
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                DesignImageView(assetID: "hero_body", contentMode: .fit) {
+                    Image(systemName: "figure.stand")
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundStyle(.green)
+                }
+                .mask(alignment: .bottom) {
+                    Rectangle()
+                        .frame(
+                            height: proxy.size.height * Self.visibleBodyFraction
+                        )
+                }
+
+                DesignImageView(assetID: headAssetID, contentMode: .fit) {
+                    Color.clear
+                }
+
+                if equippedItemIDs.contains("wardrobe_leaf_cape") {
+                    DesignImageView(assetID: "wardrobe_leaf_cape", contentMode: .fit) {
+                        Color.clear
+                    }
+                }
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
     }
 }

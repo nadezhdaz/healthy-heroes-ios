@@ -1,51 +1,64 @@
 import SwiftUI
 
 struct ClassSelectionView: View {
+    private static let gridColumns = Array(
+        repeating: GridItem(.flexible(minimum: 88), spacing: 12),
+        count: 4
+    )
+
     let router: AppRouter
     let selectStarterClassUseCase: any SelectStarterClassUseCase
     let eventBus: AppEventBus
 
-    @State private var selectedClass: CharacterClass = .guardian
+    @State private var selectedClass: CharacterClass = .knight
     @State private var errorMessage: String?
 
     var body: some View {
-        LandscapeGameScreen(title: "Choose Class", fallbackColor: Color.cyan.opacity(0.1)) { size in
-            HStack(spacing: 18) {
-                GamePanel {
-                    DesignImageView(assetID: selectedClass.assetID, contentMode: .fit) {
-                        Image(systemName: "shield.lefthalf.filled")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundStyle(.green)
-                    }
-                    .frame(width: min(260, size.width * 0.28), height: min(250, size.height * 0.58))
-                }
-                .frame(width: min(360, size.width * 0.38))
+        LandscapeGameScreen(
+            title: "Which Hero Are You?",
+            backgroundAssetID: "classes_background",
+            fallbackColor: Color.cyan.opacity(0.1)
+        ) { size in
+            let cardHeight = max(92, min(132, size.height * 0.24))
 
-                GamePanel(alignment: .leading) {
-                    VStack(spacing: 12) {
+            VStack(spacing: 10) {
+                ScrollView {
+                    LazyVGrid(columns: Self.gridColumns, spacing: 10) {
                         ForEach(CharacterClass.allCases) { characterClass in
                             ClassCard(
                                 characterClass: characterClass,
-                                isSelected: selectedClass == characterClass
+                                isSelected: selectedClass == characterClass,
+                                height: cardHeight
                             ) {
-                                guard characterClass.isAvailableAtStart else { return }
                                 selectedClass = characterClass
+                                errorMessage = nil
                             }
                         }
-
-                        Spacer(minLength: 0)
-
-                        Button {
-                            confirm()
-                        } label: {
-                            Text("Confirm")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity, minHeight: 52)
-                        }
-                        .buttonStyle(.borderedProminent)
                     }
+                    .padding(.vertical, 4)
                 }
+                .scrollIndicators(.hidden)
+
+                HStack(spacing: 16) {
+                    Text("Knight and Princess are ready. More heroes unlock later.")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+
+                    Spacer(minLength: 8)
+
+                    Button(action: confirm) {
+                        Text("Choose \(selectedClass.title)")
+                            .font(.headline)
+                            .frame(minWidth: 160, minHeight: 48)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(GameDesign.green)
+                    .accessibilityHint("Saves this class and continues")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
             }
         }
         .overlay(alignment: .bottom) {
@@ -74,38 +87,71 @@ struct ClassSelectionView: View {
 private struct ClassCard: View {
     let characterClass: CharacterClass
     let isSelected: Bool
+    let height: CGFloat
     let action: () -> Void
+
+    private var borderColor: Color {
+        if isSelected {
+            return GameDesign.green
+        }
+        return characterClass.isLocked ? Color.secondary.opacity(0.35) : Color.white.opacity(0.8)
+    }
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 14) {
-                DesignImageView(assetID: characterClass.assetID, contentMode: .fit) {
-                    Image(systemName: characterClass.isLocked ? "lock.fill" : "shield.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(characterClass.isLocked ? Color.secondary : Color.green)
+            VStack(spacing: 4) {
+                ZStack(alignment: .topTrailing) {
+                    DesignImageView(assetID: characterClass.assetID, contentMode: .fit) {
+                        Image(systemName: characterClass.isLocked ? "lock.fill" : "shield.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(characterClass.isLocked ? Color.secondary : GameDesign.green)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .opacity(characterClass.isLocked ? 0.48 : 1)
+
+                    if characterClass.isLocked {
+                        Image(systemName: "lock.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(.white)
+                            .padding(7)
+                            .background(Color.black.opacity(0.64), in: Circle())
+                    } else if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(GameDesign.green)
+                            .background(.white, in: Circle())
+                    }
                 }
-                .frame(width: 56, height: 56)
-                .opacity(characterClass.isLocked ? 0.45 : 1)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(characterClass.title)
-                        .font(.headline)
-                    Text(characterClass.isLocked ? "Locked" : "Ready to play")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(characterClass.title)
+                    .font(GameDesign.font(14, weight: .bold))
+                    .foregroundStyle(characterClass.isLocked ? Color.secondary : Color.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
-                Spacer()
-
-                Image(systemName: characterClass.isLocked ? "lock.fill" : "checkmark.circle.fill")
-                    .foregroundStyle(isSelected ? Color.green : Color.secondary)
+                Text(characterClass.isLocked ? "Locked" : (isSelected ? "Selected" : "Ready"))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(characterClass.isLocked ? Color.secondary : GameDesign.green)
             }
-            .padding()
-            .background(isSelected ? Color.green.opacity(0.18) : Color.white.opacity(0.62))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(8)
+            .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
+            .background(GameDesign.cream.opacity(characterClass.isLocked ? 0.78 : 0.96))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(borderColor, lineWidth: isSelected ? 3 : 1.5)
+            }
+            .shadow(color: .black.opacity(isSelected ? 0.2 : 0.1), radius: 5, y: 3)
         }
         .buttonStyle(.plain)
         .disabled(characterClass.isLocked)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(characterClass.title)
+        .accessibilityValue(
+            characterClass.isLocked ? "Locked" : (isSelected ? "Selected" : "Available")
+        )
+        .accessibilityHint(characterClass.isLocked ? "Unlocks later" : "Selects this class")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

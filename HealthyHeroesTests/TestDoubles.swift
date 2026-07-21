@@ -81,12 +81,15 @@ func makeQuest(
     )
 }
 
-func makeProfile(quests: [Quest] = [makeQuest()]) -> ChildProfile {
+func makeProfile(
+    quests: [Quest] = [makeQuest()],
+    selectedClass: CharacterClass = .knight
+) -> ChildProfile {
     ChildProfile(
         id: "child",
         character: CharacterState(
             appearance: CharacterAppearance(),
-            selectedClass: .guardian,
+            selectedClass: selectedClass,
             equippedItemIDs: []
         ),
         progress: ProgressState(totalXP: 0, mapPosition: 0),

@@ -148,24 +148,23 @@ private struct AppRootView: View {
 
 private struct RootFlowView: View {
     private enum RootState {
-        case loading
         case onboarding
         case main
     }
 
-    @State private var rootState: RootState = .loading
+    @State private var rootState: RootState
     @State private var cancellable: AnyCancellable?
 
     let container: AppDependencyContainer
 
+    init(container: AppDependencyContainer) {
+        self.container = container
+        _rootState = State(initialValue: Self.initialState(for: container))
+    }
+
     var body: some View {
         Group {
             switch rootState {
-            case .loading:
-                ProgressView("Loading hero...")
-                    .task {
-                        load()
-                    }
             case .onboarding:
                 StartView(router: container.router)
             case .main:
@@ -188,12 +187,12 @@ private struct RootFlowView: View {
         }
     }
 
-    private func load() {
+    private static func initialState(for container: AppDependencyContainer) -> RootState {
         do {
             let profile = try container.profileRepository.loadProfile()
-            rootState = profile?.character.selectedClass == nil ? .onboarding : .main
+            return profile?.character.selectedClass == nil ? .onboarding : .main
         } catch {
-            rootState = .onboarding
+            return .onboarding
         }
     }
 }
