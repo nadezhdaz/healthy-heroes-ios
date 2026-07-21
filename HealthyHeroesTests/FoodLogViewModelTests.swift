@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class FoodLogViewModelTests: XCTestCase {
-    func testFailureClearsPreviousResultAndShowsError() {
+    func testFailureClearsPreviousResultAndShowsError() async {
         let useCase = SequencedLogFoodUseCase(outcomes: [
             .success(makeLogFoodResult()),
             .failure
@@ -14,11 +14,11 @@ final class FoodLogViewModelTests: XCTestCase {
             router: AppRouter()
         )
 
-        viewModel.log(.fruit)
+        await viewModel.log(.fruit)
         XCTAssertNotNil(viewModel.lastResult)
         XCTAssertNil(viewModel.errorMessage)
 
-        viewModel.log(.fruit)
+        await viewModel.log(.fruit)
         XCTAssertNil(viewModel.lastResult)
         XCTAssertEqual(viewModel.errorMessage, "Could not log this choice. Please try again.")
     }
@@ -53,7 +53,7 @@ private final class SequencedLogFoodUseCase: LogFoodUseCase {
         self.outcomes = outcomes
     }
 
-    func log(category: FoodCategory, customTitle: String?) throws -> LogFoodResult {
+    func log(category: FoodCategory, customTitle: String?) async throws -> LogFoodResult {
         guard !outcomes.isEmpty else { throw TestError.noOutcome }
 
         switch outcomes.removeFirst() {

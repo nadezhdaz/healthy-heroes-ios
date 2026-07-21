@@ -19,12 +19,8 @@ struct HealthyHeroesApp: App {
     private static func registerDesignFonts() {
         let fontNames = [
             "MPLUSRounded1c-Regular",
-            "MPLUSRounded1c-Medium",
             "MPLUSRounded1c-Bold",
-            "MPLUSRounded1c-ExtraBold",
-            "MPLUSRounded1c-Black",
-            "MPLUSRounded1c-Light",
-            "MPLUSRounded1c-Thin"
+            "MPLUSRounded1c-Black"
         ]
 
         for fontName in fontNames {
@@ -148,23 +144,26 @@ private struct AppRootView: View {
 
 private struct RootFlowView: View {
     private enum RootState {
+        case loading
         case onboarding
         case main
     }
 
-    @State private var rootState: RootState
+    @State private var rootState: RootState = .loading
     @State private var cancellable: AnyCancellable?
 
     let container: AppDependencyContainer
 
-    init(container: AppDependencyContainer) {
-        self.container = container
-        _rootState = State(initialValue: Self.initialState(for: container))
-    }
-
     var body: some View {
         Group {
             switch rootState {
+            case .loading:
+                ZStack {
+                    GameDesign.cream
+                        .ignoresSafeArea()
+                    ProgressView()
+                        .tint(GameDesign.green)
+                }
             case .onboarding:
                 StartView(router: container.router)
             case .main:
@@ -178,6 +177,9 @@ private struct RootFlowView: View {
                 )
             }
         }
+        .task {
+            await loadInitialState()
+        }
         .onAppear {
             cancellable = container.eventBus.events.sink { event in
                 if case let .profileUpdated(profile) = event {
@@ -187,12 +189,12 @@ private struct RootFlowView: View {
         }
     }
 
-    private static func initialState(for container: AppDependencyContainer) -> RootState {
+    private func loadInitialState() async {
         do {
-            let profile = try container.profileRepository.loadProfile()
-            return profile?.character.selectedClass == nil ? .onboarding : .main
+            let profile = try await container.profileRepository.loadProfile()
+            rootState = profile?.character.selectedClass == nil ? .onboarding : .main
         } catch {
-            return .onboarding
+            rootState = .onboarding
         }
     }
 }

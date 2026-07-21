@@ -23,12 +23,14 @@ final class FoodLogViewModel: ObservableObject {
         self.router = router
     }
 
-    func log(_ category: FoodCategory) {
-        log(category, customTitle: nil)
+    @discardableResult
+    func log(_ category: FoodCategory) async -> Bool {
+        await log(category, customTitle: nil)
     }
 
-    func log(_ category: FoodCategory, customTitle: String?) {
-        guard !isLogging else { return }
+    @discardableResult
+    func log(_ category: FoodCategory, customTitle: String?) async -> Bool {
+        guard !isLogging else { return false }
 
         feedbackDismissalTask?.cancel()
         lastResult = nil
@@ -37,7 +39,7 @@ final class FoodLogViewModel: ObservableObject {
         defer { isLogging = false }
 
         do {
-            let result = try logFoodUseCase.log(category: category, customTitle: customTitle)
+            let result = try await logFoodUseCase.log(category: category, customTitle: customTitle)
             lastResult = result
             scheduleResultDismissal()
 
@@ -52,9 +54,11 @@ final class FoodLogViewModel: ObservableObject {
                 eventBus.post(.rewardsUnlocked(result.unlockedRewardIDs))
                 router.present(.mysteryPack(result.unlockedRewardIDs))
             }
+            return true
         } catch {
             lastResult = nil
             errorMessage = "Could not log this choice. Please try again."
+            return false
         }
     }
 

@@ -1,39 +1,5 @@
 import Foundation
 
-final class LocalProfileRepository: ProfileRepository {
-    private let store: JSONFileStore<ChildProfile>
-
-    init(store: JSONFileStore<ChildProfile>) {
-        self.store = store
-    }
-
-    func loadProfile() throws -> ChildProfile? {
-        try store.load()
-    }
-
-    func saveProfile(_ profile: ChildProfile) throws {
-        try store.save(profile)
-    }
-}
-
-final class LocalFoodLogRepository: FoodLogRepository {
-    private let store: JSONFileStore<[FoodLogEntry]>
-
-    init(store: JSONFileStore<[FoodLogEntry]>) {
-        self.store = store
-    }
-
-    func fetchEntries() throws -> [FoodLogEntry] {
-        try store.load() ?? []
-    }
-
-    func addEntry(_ entry: FoodLogEntry) throws {
-        var entries = try fetchEntries()
-        entries.append(entry)
-        try store.save(entries)
-    }
-}
-
 final class BundledRewardCatalogRepository: RewardCatalogRepository {
     private let loader: BundledConfigLoader
 

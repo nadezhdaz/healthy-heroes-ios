@@ -59,10 +59,14 @@ struct QuestsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
             }
         }
-        .task { load() }
+        .task { await load() }
         .onAppear {
             cancellable = eventBus.events.sink { event in
-                if case .profileUpdated = event { load() }
+                if case .profileUpdated = event {
+                    Task { @MainActor in
+                        await load()
+                    }
+                }
             }
         }
         .onDisappear {
@@ -70,8 +74,9 @@ struct QuestsView: View {
         }
     }
 
-    private func load() {
-        quests = (try? profileRepository.loadProfile()?.quests) ?? []
+    @MainActor
+    private func load() async {
+        quests = (try? await profileRepository.loadProfile()?.quests) ?? []
     }
 }
 

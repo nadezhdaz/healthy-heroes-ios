@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="26100" systemVersion="25F90" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="1">
+    <entity name="ChildProfileEntity" representedClassName="HHChildProfileEntity" syncable="YES">
+        <attribute name="profileID" attributeType="String"/>
+        <attribute name="selectedClass" optional="YES" attributeType="String"/>
+        <attribute name="hairStyle" attributeType="String"/>
+        <attribute name="faceStyle" attributeType="String"/>
+        <attribute name="eyesStyle" attributeType="String"/>
+        <attribute name="noseStyle" attributeType="String"/>
+        <attribute name="earsStyle" attributeType="String"/>
+        <attribute name="totalXP" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="mapPosition" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="hasSeenStart" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasCreatedCharacter" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasSelectedClass" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasCompletedFirstFoodLog" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasCompletedFirstQuest" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasOpenedFirstReward" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasEquippedFirstItem" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isFirstSessionCompleted" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="updatedAt" attributeType="Date"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="profileID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="FoodLogEntryEntity" representedClassName="HHFoodLogEntryEntity" syncable="YES">
+        <attribute name="entryID" attributeType="String"/>
+        <attribute name="profileID" attributeType="String"/>
+        <attribute name="category" attributeType="String"/>
+        <attribute name="customTitle" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" attributeType="Date"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="entryID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="QuestProgressEntity" representedClassName="HHQuestProgressEntity" syncable="YES">
+        <attribute name="questID" attributeType="String"/>
+        <attribute name="profileID" attributeType="String"/>
+        <attribute name="currentProgress" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="status" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="questID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="RewardUnlockEntity" representedClassName="HHRewardUnlockEntity" syncable="YES">
+        <attribute name="rewardID" attributeType="String"/>
+        <attribute name="profileID" attributeType="String"/>
+        <attribute name="isOpened" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="sortIndex" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="unlockedAt" attributeType="Date"/>
+        <attribute name="openedAt" optional="YES" attributeType="Date"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="rewardID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="WardrobeStateEntity" representedClassName="HHWardrobeStateEntity" syncable="YES">
+        <attribute name="itemID" attributeType="String"/>
+        <attribute name="profileID" attributeType="String"/>
+        <attribute name="isUnlocked" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isEquipped" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="unlockedIndex" attributeType="Integer 64" defaultValueString="-1" usesScalarValueType="YES"/>
+        <attribute name="equippedIndex" attributeType="Integer 64" defaultValueString="-1" usesScalarValueType="YES"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="itemID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="LegacyImportEntity" representedClassName="HHLegacyImportEntity" syncable="YES">
+        <attribute name="migrationID" attributeType="String"/>
+        <attribute name="completedAt" attributeType="Date"/>
+        <attribute name="profileCount" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="foodLogEntryCount" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="migrationID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+</model>

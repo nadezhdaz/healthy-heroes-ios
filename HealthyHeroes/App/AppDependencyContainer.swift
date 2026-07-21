@@ -6,6 +6,7 @@ final class AppDependencyContainer: ObservableObject {
     let eventBus: AppEventBus
     let assetResolver: AssetResolver
 
+    let gameStateRepository: any GameStateRepository
     let profileRepository: any ProfileRepository
     let foodLogRepository: any FoodLogRepository
     let rewardCatalogRepository: any RewardCatalogRepository
@@ -22,39 +23,38 @@ final class AppDependencyContainer: ObservableObject {
         router: AppRouter,
         eventBus: AppEventBus,
         assetResolver: AssetResolver,
-        profileRepository: any ProfileRepository,
-        foodLogRepository: any FoodLogRepository,
+        gameStateRepository: any GameStateRepository,
         rewardCatalogRepository: any RewardCatalogRepository,
         gameConfigRepository: any GameConfigRepository
     ) {
         self.router = router
         self.eventBus = eventBus
         self.assetResolver = assetResolver
-        self.profileRepository = profileRepository
-        self.foodLogRepository = foodLogRepository
+        self.gameStateRepository = gameStateRepository
+        self.profileRepository = gameStateRepository
+        self.foodLogRepository = gameStateRepository
         self.rewardCatalogRepository = rewardCatalogRepository
         self.gameConfigRepository = gameConfigRepository
 
         self.createCharacterUseCase = CreateCharacterUseCaseImpl(
-            profileRepository: profileRepository,
+            profileRepository: gameStateRepository,
             gameConfigRepository: gameConfigRepository
         )
         self.selectStarterClassUseCase = SelectStarterClassUseCaseImpl(
-            profileRepository: profileRepository,
+            profileRepository: gameStateRepository,
             gameConfigRepository: gameConfigRepository
         )
         self.logFoodUseCase = LogFoodUseCaseImpl(
-            profileRepository: profileRepository,
-            foodLogRepository: foodLogRepository,
+            gameStateRepository: gameStateRepository,
             gameConfigRepository: gameConfigRepository,
             progressEngine: ProgressEngine(),
             questEngine: QuestEngine(),
             rewardEngine: RewardEngine(),
             mapEngine: MapEngine()
         )
-        self.equipItemUseCase = EquipItemUseCaseImpl(profileRepository: profileRepository)
+        self.equipItemUseCase = EquipItemUseCaseImpl(profileRepository: gameStateRepository)
         self.markRewardOpenedUseCase = MarkRewardOpenedUseCaseImpl(
-            profileRepository: profileRepository
+            gameStateRepository: gameStateRepository
         )
         self.openMysteryPackUseCase = OpenMysteryPackUseCaseImpl(
             rewardCatalogRepository: rewardCatalogRepository
@@ -62,26 +62,60 @@ final class AppDependencyContainer: ObservableObject {
     }
 
     static func live() -> AppDependencyContainer {
+#if DEBUG
+        let bootstrapStartedAt = ProcessInfo.processInfo.systemUptime
+#endif
         let storageDirectory = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first!
             .appendingPathComponent("HealthyHeroes", isDirectory: true)
 
-        let profileStore = JSONFileStore<ChildProfile>(
-            fileURL: storageDirectory.appendingPathComponent("profile.json")
+        let persistenceController: CoreDataPersistenceController
+        do {
+            persistenceController = try CoreDataPersistenceController(
+                storeURL: storageDirectory.appendingPathComponent("HealthyHeroes.sqlite")
+            )
+        } catch {
+            preconditionFailure("Could not load the Healthy Heroes database: \(error)")
+        }
+
+        let rewardCatalogRepository = BundledRewardCatalogRepository()
+        let gameConfigRepository = BundledGameConfigRepository()
+        let gameStateRepository = CoreDataGameRepository(
+            container: persistenceController.container,
+            gameConfigRepository: gameConfigRepository,
+            rewardCatalogRepository: rewardCatalogRepository
         )
-        let foodLogStore = JSONFileStore<[FoodLogEntry]>(
-            fileURL: storageDirectory.appendingPathComponent("food_log_entries.json")
+#if DEBUG
+        let migrationStartedAt = ProcessInfo.processInfo.systemUptime
+#endif
+        do {
+            try gameStateRepository.migrateLegacyJSONIfNeeded(
+                profileURL: storageDirectory.appendingPathComponent("profile.json"),
+                foodLogURL: storageDirectory.appendingPathComponent("food_log_entries.json")
+            )
+        } catch {
+            NSLog("Legacy data migration failed: %@", String(describing: type(of: error)))
+        }
+
+#if DEBUG
+        NSLog(
+            "PERF legacy_migration_ms=%.2f",
+            (ProcessInfo.processInfo.systemUptime - migrationStartedAt) * 1_000
         )
+        NSLog(
+            "PERF dependency_bootstrap_ms=%.2f",
+            (ProcessInfo.processInfo.systemUptime - bootstrapStartedAt) * 1_000
+        )
+#endif
 
         return AppDependencyContainer(
             router: AppRouter(),
             eventBus: AppEventBus(),
             assetResolver: AssetResolver(),
-            profileRepository: LocalProfileRepository(store: profileStore),
-            foodLogRepository: LocalFoodLogRepository(store: foodLogStore),
-            rewardCatalogRepository: BundledRewardCatalogRepository(),
-            gameConfigRepository: BundledGameConfigRepository()
+            gameStateRepository: gameStateRepository,
+            rewardCatalogRepository: rewardCatalogRepository,
+            gameConfigRepository: gameConfigRepository
         )
     }
 }

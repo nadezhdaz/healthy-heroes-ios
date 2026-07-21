@@ -1,0 +1,40 @@
+{
+  "id": "legacy-v0-child",
+  "character": {
+    "appearance": {
+      "hairStyle": "hero_head_1",
+      "faceStyle": "hero_face_01",
+      "eyesStyle": "hero_eyes_01",
+      "noseStyle": "hero_nose_01",
+      "earsStyle": "hero_ears_01"
+    },
+    "selectedClass": "guardian",
+    "equippedItemIDs": []
+  },
+  "progress": { "totalXP": 10, "mapPosition": 1 },
+  "quests": [
+    {
+      "id": "quest",
+      "type": "daily",
+      "title": "Test quest",
+      "target": 1,
+      "currentProgress": 0,
+      "rewardID": "wardrobe_leaf_cape",
+      "status": "active",
+      "trigger": "logAnyHealthyFood"
+    }
+  ],
+  "unlockedRewardIDs": [],
+  "wardrobe": { "unlockedItemIDs": [], "equippedItemIDs": [] },
+  "stickers": { "unlockedStickerIDs": [] },
+  "onboarding": {
+    "hasSeenStart": true,
+    "hasCreatedCharacter": true,
+    "hasSelectedClass": true,
+    "hasCompletedFirstFoodLog": false,
+    "hasCompletedFirstQuest": false,
+    "hasOpenedFirstReward": false,
+    "hasEquippedFirstItem": false,
+    "isFirstSessionCompleted": false
+  }
+}

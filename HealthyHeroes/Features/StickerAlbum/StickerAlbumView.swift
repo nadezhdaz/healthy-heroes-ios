@@ -44,19 +44,22 @@ struct StickerAlbumView: View {
             }
         }
         .task {
-            load()
+            await load()
         }
         .onAppear {
             cancellable = eventBus.events.sink { event in
                 if case .profileUpdated = event {
-                    load()
+                    Task { @MainActor in
+                        await load()
+                    }
                 }
             }
         }
     }
 
-    private func load() {
-        stickerIDs = (try? profileRepository.loadProfile()?.stickers.unlockedStickerIDs) ?? []
+    @MainActor
+    private func load() async {
+        stickerIDs = (try? await profileRepository.loadProfile()?.stickers.unlockedStickerIDs) ?? []
     }
 }
 

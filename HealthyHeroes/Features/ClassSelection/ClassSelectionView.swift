@@ -47,7 +47,11 @@ struct ClassSelectionView: View {
 
                     Spacer(minLength: 8)
 
-                    Button(action: confirm) {
+                    Button {
+                        Task {
+                            await confirm()
+                        }
+                    } label: {
                         Text("Choose \(selectedClass.title)")
                             .font(.headline)
                             .frame(minWidth: 160, minHeight: 48)
@@ -72,9 +76,9 @@ struct ClassSelectionView: View {
         }
     }
 
-    private func confirm() {
+    private func confirm() async {
         do {
-            let updatedProfile = try selectStarterClassUseCase.select(selectedClass)
+            let updatedProfile = try await selectStarterClassUseCase.select(selectedClass)
             eventBus.post(.profileUpdated(updatedProfile))
             eventBus.post(.firstSessionProgressUpdated(updatedProfile.onboarding))
             router.popToRoot()

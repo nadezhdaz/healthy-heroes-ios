@@ -37,7 +37,7 @@ final class OnboardingUseCaseTests: XCTestCase {
         )
     }
 
-    func testCreateCharacterSavesAppearanceAndOnboardingState() throws {
+    func testCreateCharacterSavesAppearanceAndOnboardingState() async throws {
         let profileRepository = InMemoryProfileRepository()
         let configRepository = StaticGameConfigRepository(quests: [makeQuest()])
         let useCase = CreateCharacterUseCaseImpl(
@@ -52,7 +52,7 @@ final class OnboardingUseCaseTests: XCTestCase {
             earsStyle: "ears_round"
         )
 
-        let profile = try useCase.create(appearance: appearance)
+        let profile = try await useCase.create(appearance: appearance)
 
         XCTAssertEqual(profile.character.appearance, appearance)
         XCTAssertTrue(profile.onboarding.hasCreatedCharacter)
@@ -60,21 +60,21 @@ final class OnboardingUseCaseTests: XCTestCase {
         XCTAssertEqual(profileRepository.savedProfiles.last, profile)
     }
 
-    func testSelectStarterClassSavesAvailableClass() throws {
+    func testSelectStarterClassSavesAvailableClass() async throws {
         let profileRepository = InMemoryProfileRepository(profile: makeProfile())
         let useCase = SelectStarterClassUseCaseImpl(
             profileRepository: profileRepository,
             gameConfigRepository: StaticGameConfigRepository(quests: [makeQuest()])
         )
 
-        let profile = try useCase.select(.princess)
+        let profile = try await useCase.select(.princess)
 
         XCTAssertEqual(profile.character.selectedClass, .princess)
         XCTAssertTrue(profile.onboarding.hasSelectedClass)
         XCTAssertEqual(profileRepository.savedProfiles.last, profile)
     }
 
-    func testSelectStarterClassRejectsEveryLockedClass() throws {
+    func testSelectStarterClassRejectsEveryLockedClass() async throws {
         let profileRepository = InMemoryProfileRepository(profile: makeProfile())
         let useCase = SelectStarterClassUseCaseImpl(
             profileRepository: profileRepository,
@@ -82,7 +82,10 @@ final class OnboardingUseCaseTests: XCTestCase {
         )
 
         for characterClass in CharacterClass.allCases.filter(\.isLocked) {
-            XCTAssertThrowsError(try useCase.select(characterClass)) { error in
+            do {
+                _ = try await useCase.select(characterClass)
+                XCTFail("Expected locked class to be rejected")
+            } catch {
                 XCTAssertEqual(error as? UseCaseError, .classLocked)
             }
         }

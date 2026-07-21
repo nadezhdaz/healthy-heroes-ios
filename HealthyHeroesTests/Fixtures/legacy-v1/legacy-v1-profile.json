@@ -1,0 +1,43 @@
+{
+  "id": "legacy-v1-child",
+  "character": {
+    "appearance": {
+      "hairStyle": "hero_head_2",
+      "faceStyle": "hero_face_01",
+      "eyesStyle": "hero_eyes_02",
+      "noseStyle": "hero_nose_02",
+      "earsStyle": "hero_ears_01"
+    },
+    "selectedClass": "princess",
+    "equippedItemIDs": ["wardrobe_leaf_cape"]
+  },
+  "progress": { "totalXP": 35, "mapPosition": 3 },
+  "quests": [
+    {
+      "id": "quest",
+      "type": "daily",
+      "title": "Test quest",
+      "target": 1,
+      "currentProgress": 1,
+      "rewardID": "wardrobe_leaf_cape",
+      "status": "rewarded",
+      "trigger": "logAnyHealthyFood"
+    }
+  ],
+  "unlockedRewardIDs": ["wardrobe_leaf_cape"],
+  "wardrobe": {
+    "unlockedItemIDs": ["wardrobe_leaf_cape"],
+    "equippedItemIDs": ["wardrobe_leaf_cape"]
+  },
+  "stickers": { "unlockedStickerIDs": [] },
+  "onboarding": {
+    "hasSeenStart": true,
+    "hasCreatedCharacter": true,
+    "hasSelectedClass": true,
+    "hasCompletedFirstFoodLog": true,
+    "hasCompletedFirstQuest": true,
+    "hasOpenedFirstReward": true,
+    "hasEquippedFirstItem": true,
+    "isFirstSessionCompleted": true
+  }
+}

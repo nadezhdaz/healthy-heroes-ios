@@ -3,6 +3,8 @@ import Foundation
 final class BundledConfigLoader {
     private let bundle: Bundle
     private let decoder: JSONDecoder
+    private let lock = NSLock()
+    private var cachedValues: [String: Any] = [:]
 
     init(bundle: Bundle = .main) {
         self.bundle = bundle
@@ -11,9 +13,19 @@ final class BundledConfigLoader {
     }
 
     func decode<Value: Decodable>(_ type: Value.Type, fileName: String) throws -> Value {
+        let cacheKey = "\(fileName):\(String(reflecting: Value.self))"
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let cachedValue = cachedValues[cacheKey] as? Value {
+            return cachedValue
+        }
+
         let url = try url(for: fileName)
         let data = try Data(contentsOf: url)
-        return try decoder.decode(Value.self, from: data)
+        let value = try decoder.decode(Value.self, from: data)
+        cachedValues[cacheKey] = value
+        return value
     }
 
     private func url(for fileName: String) throws -> URL {

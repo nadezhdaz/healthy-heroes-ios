@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class MainViewModelTests: XCTestCase {
-    func testLoadExposesPersistedClassForMainScreen() {
+    func testLoadExposesPersistedClassForMainScreen() async {
         let profileRepository = InMemoryProfileRepository(
             profile: makeProfile(selectedClass: .princess)
         )
@@ -14,7 +14,7 @@ final class MainViewModelTests: XCTestCase {
             router: AppRouter()
         )
 
-        viewModel.load()
+        await viewModel.load()
 
         XCTAssertEqual(viewModel.selectedClass, .princess)
         XCTAssertEqual(viewModel.heroTitle, "Princess")
