@@ -22,7 +22,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1F20A0212C50000100000001 /* Unused font resources */ = {
+		1F20A0212C50000100000001 /* Exceptions for "HealthyHeroes" folder in "HealthyHeroes" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"Resources/Design/FONT/M_PLUS_Rounded_1c/MPLUSRounded1c-ExtraBold.ttf",
@@ -38,7 +38,7 @@
 		1F20A0032C50000100000001 /* HealthyHeroes */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1F20A0212C50000100000001 /* Unused font resources */,
+				1F20A0212C50000100000001 /* Exceptions for "HealthyHeroes" folder in "HealthyHeroes" target */,
 			);
 			path = HealthyHeroes;
 			sourceTree = "<group>";

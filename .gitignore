@@ -61,5 +61,5 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
-# Design assets and original sources are not tracked.
-Design/
+# Design sources are not tracked.
+/DesignSources/
