@@ -39,19 +39,22 @@ struct MapView: View {
             }
         }
         .task {
-            load()
+            await load()
         }
         .onAppear {
             cancellable = eventBus.events.sink { event in
                 if case .profileUpdated = event {
-                    load()
+                    Task { @MainActor in
+                        await load()
+                    }
                 }
             }
         }
     }
 
-    private func load() {
-        progress = (try? profileRepository.loadProfile()?.progress)
+    @MainActor
+    private func load() async {
+        progress = (try? await profileRepository.loadProfile()?.progress)
             ?? ProgressState(totalXP: 0, mapPosition: 0)
     }
 }

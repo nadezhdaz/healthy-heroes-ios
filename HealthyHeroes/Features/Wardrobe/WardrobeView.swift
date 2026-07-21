@@ -43,7 +43,9 @@ struct WardrobeView: View {
                                         itemID: itemID,
                                         isEquipped: equippedItemIDs.contains(itemID)
                                     ) {
-                                        equip(itemID)
+                                        Task {
+                                            await equip(itemID)
+                                        }
                                     }
                                 }
                             }
@@ -63,19 +65,22 @@ struct WardrobeView: View {
             }
         }
         .task {
-            load()
+            await load()
         }
         .onAppear {
             cancellable = eventBus.events.sink { event in
                 if case .profileUpdated = event {
-                    load()
+                    Task { @MainActor in
+                        await load()
+                    }
                 }
             }
         }
     }
 
-    private func load() {
-        guard let profile = try? profileRepository.loadProfile() else {
+    @MainActor
+    private func load() async {
+        guard let profile = try? await profileRepository.loadProfile() else {
             itemIDs = []
             equippedItemIDs = []
             return
@@ -85,9 +90,10 @@ struct WardrobeView: View {
         appearance = profile.character.appearance
     }
 
-    private func equip(_ itemID: WardrobeItemID) {
+    @MainActor
+    private func equip(_ itemID: WardrobeItemID) async {
         do {
-            let profile = try equipItemUseCase.equip(itemID: itemID)
+            let profile = try await equipItemUseCase.equip(itemID: itemID)
             itemIDs = profile.wardrobe.unlockedItemIDs
             equippedItemIDs = profile.wardrobe.equippedItemIDs
             appearance = profile.character.appearance

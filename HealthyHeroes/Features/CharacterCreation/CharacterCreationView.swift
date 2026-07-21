@@ -57,7 +57,9 @@ struct CharacterCreationView: View {
                         Spacer(minLength: 0)
 
                         Button {
-                            saveAppearance()
+                            Task {
+                                await saveAppearance()
+                            }
                         } label: {
                             Text("Continue")
                                 .font(.headline)
@@ -81,9 +83,11 @@ struct CharacterCreationView: View {
         }
     }
 
-    private func saveAppearance() {
+    private func saveAppearance() async {
         do {
-            let profile = try createCharacterUseCase.create(appearance: selectedPreset.appearance)
+            let profile = try await createCharacterUseCase.create(
+                appearance: selectedPreset.appearance
+            )
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
             router.show(.classSelection)

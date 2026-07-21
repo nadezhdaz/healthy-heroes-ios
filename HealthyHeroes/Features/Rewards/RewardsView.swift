@@ -38,19 +38,22 @@ struct RewardsView: View {
             }
         }
         .task {
-            load()
+            await load()
         }
         .onAppear {
             cancellable = eventBus.events.sink { event in
                 if case .rewardsUnlocked = event {
-                    load()
+                    Task { @MainActor in
+                        await load()
+                    }
                 }
             }
         }
     }
 
-    private func load() {
-        let unlockedIDs = (try? profileRepository.loadProfile()?.unlockedRewardIDs) ?? []
+    @MainActor
+    private func load() async {
+        let unlockedIDs = (try? await profileRepository.loadProfile()?.unlockedRewardIDs) ?? []
         let allRewards = (try? rewardCatalogRepository.allRewards()) ?? []
         rewards = allRewards.filter { unlockedIDs.contains($0.id) }
     }

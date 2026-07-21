@@ -21,9 +21,25 @@
 		1F20A0022C50000100000001 /* HealthyHeroesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HealthyHeroesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1F20A0212C50000100000001 /* Unused font resources */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Resources/Design/FONT/M_PLUS_Rounded_1c/MPLUSRounded1c-ExtraBold.ttf",
+				"Resources/Design/FONT/M_PLUS_Rounded_1c/MPLUSRounded1c-Light.ttf",
+				"Resources/Design/FONT/M_PLUS_Rounded_1c/MPLUSRounded1c-Medium.ttf",
+				"Resources/Design/FONT/M_PLUS_Rounded_1c/MPLUSRounded1c-Thin.ttf",
+			);
+			target = 1F20A0092C50000100000001 /* HealthyHeroes */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1F20A0032C50000100000001 /* HealthyHeroes */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1F20A0212C50000100000001 /* Unused font resources */,
+			);
 			path = HealthyHeroes;
 			sourceTree = "<group>";
 		};

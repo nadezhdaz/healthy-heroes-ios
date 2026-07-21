@@ -82,15 +82,15 @@ final class MainViewModel: ObservableObject {
         !(profile?.unlockedRewardIDs.isEmpty ?? true)
     }
 
-    func load() {
+    func load() async {
         do {
-            if let loadedProfile = try profileRepository.loadProfile() {
+            if let loadedProfile = try await profileRepository.loadProfile() {
                 profile = loadedProfile
             } else {
                 let starterProfile = ChildProfile.starter(
                     quests: try gameConfigRepository.starterQuests()
                 )
-                try profileRepository.saveProfile(starterProfile)
+                try await profileRepository.saveProfile(starterProfile)
                 profile = starterProfile
             }
             errorMessage = nil
@@ -145,7 +145,7 @@ final class MainViewModel: ObservableObject {
         case let .firstSessionProgressUpdated(onboarding):
             profile?.onboarding = onboarding
         case .foodLogged, .questCompleted, .rewardsUnlocked, .itemEquipped:
-            load()
+            break
         }
     }
 }

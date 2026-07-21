@@ -11,23 +11,23 @@ struct LogFoodResult: Equatable {
 }
 
 protocol CreateCharacterUseCase {
-    func create(appearance: CharacterAppearance) throws -> ChildProfile
+    func create(appearance: CharacterAppearance) async throws -> ChildProfile
 }
 
 protocol SelectStarterClassUseCase {
-    func select(_ characterClass: CharacterClass) throws -> ChildProfile
+    func select(_ characterClass: CharacterClass) async throws -> ChildProfile
 }
 
 protocol LogFoodUseCase {
-    func log(category: FoodCategory, customTitle: String?) throws -> LogFoodResult
+    func log(category: FoodCategory, customTitle: String?) async throws -> LogFoodResult
 }
 
 protocol EquipItemUseCase {
-    func equip(itemID: WardrobeItemID) throws -> ChildProfile
+    func equip(itemID: WardrobeItemID) async throws -> ChildProfile
 }
 
 protocol MarkRewardOpenedUseCase {
-    func markOpened(rewardID: RewardID) throws -> ChildProfile
+    func markOpened(rewardID: RewardID) async throws -> ChildProfile
 }
 
 protocol OpenMysteryPackUseCase {
@@ -38,12 +38,12 @@ struct CreateCharacterUseCaseImpl: CreateCharacterUseCase {
     let profileRepository: any ProfileRepository
     let gameConfigRepository: any GameConfigRepository
 
-    func create(appearance: CharacterAppearance) throws -> ChildProfile {
-        var profile = try profileRepository.loadProfile()
+    func create(appearance: CharacterAppearance) async throws -> ChildProfile {
+        var profile = try await profileRepository.loadProfile()
             ?? ChildProfile.starter(quests: gameConfigRepository.starterQuests())
         profile.character.appearance = appearance
         profile.onboarding.hasCreatedCharacter = true
-        try profileRepository.saveProfile(profile)
+        try await profileRepository.saveProfile(profile)
         return profile
     }
 }
@@ -52,23 +52,22 @@ struct SelectStarterClassUseCaseImpl: SelectStarterClassUseCase {
     let profileRepository: any ProfileRepository
     let gameConfigRepository: any GameConfigRepository
 
-    func select(_ characterClass: CharacterClass) throws -> ChildProfile {
+    func select(_ characterClass: CharacterClass) async throws -> ChildProfile {
         guard characterClass.isAvailableAtStart else {
             throw UseCaseError.classLocked
         }
 
-        var profile = try profileRepository.loadProfile()
+        var profile = try await profileRepository.loadProfile()
             ?? ChildProfile.starter(quests: gameConfigRepository.starterQuests())
         profile.character.selectedClass = characterClass
         profile.onboarding.hasSelectedClass = true
-        try profileRepository.saveProfile(profile)
+        try await profileRepository.saveProfile(profile)
         return profile
     }
 }
 
 struct LogFoodUseCaseImpl: LogFoodUseCase {
-    let profileRepository: any ProfileRepository
-    let foodLogRepository: any FoodLogRepository
+    let gameStateRepository: any GameStateRepository
     let gameConfigRepository: any GameConfigRepository
     let progressEngine: ProgressEngine
     let questEngine: QuestEngine
@@ -77,21 +76,30 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
     var idProvider: () -> String = { UUID().uuidString }
     var dateProvider: () -> Date = Date.init
 
-    func log(category: FoodCategory, customTitle: String?) throws -> LogFoodResult {
+    func log(category: FoodCategory, customTitle: String?) async throws -> LogFoodResult {
+        let normalizedCustomTitle: String?
+        if category == .custom {
+            let title = customTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !title.isEmpty else {
+                throw UseCaseError.customFoodTitleRequired
+            }
+            normalizedCustomTitle = title
+        } else {
+            normalizedCustomTitle = nil
+        }
+
         let progressConfig = try gameConfigRepository.progressConfig()
         let mapConfig = try gameConfigRepository.mapConfig()
-        var profile = try profileRepository.loadProfile()
+        var profile = try await gameStateRepository.loadProfile()
             ?? ChildProfile.starter(quests: gameConfigRepository.starterQuests())
         let previousMapPosition = profile.progress.mapPosition
 
         let entry = FoodLogEntry(
             id: idProvider(),
             category: category,
-            customTitle: category == .custom ? customTitle : nil,
+            customTitle: normalizedCustomTitle,
             createdAt: dateProvider()
         )
-        try foodLogRepository.addEntry(entry)
-
         let smallProgress = progressEngine.smallProgressAward(config: progressConfig)
         profile.progress = progressEngine.addingXP(smallProgress, to: profile.progress)
 
@@ -120,7 +128,7 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
         }
         profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop
 
-        try profileRepository.saveProfile(profile)
+        try await gameStateRepository.commitFoodLog(entry, updatedProfile: profile)
 
         return LogFoodResult(
             updatedProfile: profile,
@@ -137,8 +145,8 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
 struct EquipItemUseCaseImpl: EquipItemUseCase {
     let profileRepository: any ProfileRepository
 
-    func equip(itemID: WardrobeItemID) throws -> ChildProfile {
-        guard var profile = try profileRepository.loadProfile() else {
+    func equip(itemID: WardrobeItemID) async throws -> ChildProfile {
+        guard var profile = try await profileRepository.loadProfile() else {
             throw UseCaseError.missingProfile
         }
         guard profile.wardrobe.unlockedItemIDs.contains(itemID) else {
@@ -153,16 +161,16 @@ struct EquipItemUseCaseImpl: EquipItemUseCase {
         }
         profile.onboarding.hasEquippedFirstItem = true
         profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop
-        try profileRepository.saveProfile(profile)
+        try await profileRepository.saveProfile(profile)
         return profile
     }
 }
 
 struct MarkRewardOpenedUseCaseImpl: MarkRewardOpenedUseCase {
-    let profileRepository: any ProfileRepository
+    let gameStateRepository: any GameStateRepository
 
-    func markOpened(rewardID: RewardID) throws -> ChildProfile {
-        guard var profile = try profileRepository.loadProfile() else {
+    func markOpened(rewardID: RewardID) async throws -> ChildProfile {
+        guard var profile = try await gameStateRepository.loadProfile() else {
             throw UseCaseError.missingProfile
         }
         guard profile.unlockedRewardIDs.contains(rewardID) else {
@@ -171,7 +179,7 @@ struct MarkRewardOpenedUseCaseImpl: MarkRewardOpenedUseCase {
 
         profile.onboarding.hasOpenedFirstReward = true
         profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop
-        try profileRepository.saveProfile(profile)
+        try await gameStateRepository.commitRewardOpened(rewardID, updatedProfile: profile)
         return profile
     }
 }
@@ -189,4 +197,5 @@ enum UseCaseError: Error, Equatable {
     case itemLocked
     case classLocked
     case rewardLocked
+    case customFoodTitleRequired
 }

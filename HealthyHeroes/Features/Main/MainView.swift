@@ -48,7 +48,7 @@ struct MainView: View {
             }
         }
         .task {
-            viewModel.load()
+            await viewModel.load()
         }
         .overlay {
             if let errorMessage = viewModel.errorMessage {

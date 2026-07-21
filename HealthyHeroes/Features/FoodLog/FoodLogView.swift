@@ -4,6 +4,7 @@ struct FoodLogView: View {
     @StateObject private var viewModel: FoodLogViewModel
     @State private var selectedTab: FoodTab = .all
     @State private var searchText = ""
+    @State private var customFoodRequest: CustomFoodRequest?
     @Environment(\.dismiss) private var dismiss
 
     init(viewModel: FoodLogViewModel) {
@@ -46,7 +47,13 @@ struct FoodLogView: View {
                         ) {
                             ForEach(visibleFoods) { food in
                                 Button {
-                                    viewModel.log(food.category)
+                                    if food.category == .custom {
+                                        customFoodRequest = CustomFoodRequest()
+                                    } else {
+                                        Task {
+                                            await viewModel.log(food.category)
+                                        }
+                                    }
                                 } label: {
                                     FoodChoiceCard(choice: food)
                                 }
@@ -89,6 +96,76 @@ struct FoodLogView: View {
                     .background(GameDesign.cream)
                     .clipShape(Capsule())
                     .padding(.bottom, 18)
+                }
+        }
+        .sheet(item: $customFoodRequest) { _ in
+            CustomFoodEntrySheet(viewModel: viewModel)
+        }
+    }
+}
+
+private struct CustomFoodRequest: Identifiable {
+    let id = UUID()
+}
+
+private struct CustomFoodEntrySheet: View {
+    @ObservedObject var viewModel: FoodLogViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var title = ""
+
+    private var trimmedTitle: String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Add a healthy choice that is not in the list.")
+                    .font(GameDesign.font(16, weight: .bold))
+                    .foregroundStyle(GameDesign.green)
+
+                TextField("Food name", text: $title)
+                    .font(GameDesign.font(18))
+                    .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+                    .onSubmit(save)
+
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                }
+
+                Spacer(minLength: 0)
+
+                Button(action: save) {
+                    Text(viewModel.isLogging ? "Saving…" : "Add to Food Log")
+                        .font(GameDesign.font(17, weight: .bold))
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(GameDesign.green)
+                .disabled(trimmedTitle.isEmpty || viewModel.isLogging)
+            }
+            .padding(24)
+            .background(GameDesign.cream.ignoresSafeArea())
+            .navigationTitle("Other Food")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func save() {
+        guard !trimmedTitle.isEmpty, !viewModel.isLogging else { return }
+        Task {
+            if await viewModel.log(.custom, customTitle: trimmedTitle) {
+                dismiss()
             }
         }
     }
@@ -153,14 +230,8 @@ private struct FoodLogHeader: View {
                 .foregroundStyle(GameDesign.green)
             Spacer()
 
-            DesignImageView(assetID: "settings_button", contentMode: .fit) {
-                Image(systemName: "gearshape.fill")
-                    .font(.title2)
-                    .foregroundStyle(.yellow)
-                    .background(Color.purple.opacity(0.9))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            .frame(width: 54, height: 54)
+            Color.clear
+                .frame(width: 54, height: 54)
             }
             HStack(spacing: 0) {
                 ForEach(FoodTab.allCases) { tab in

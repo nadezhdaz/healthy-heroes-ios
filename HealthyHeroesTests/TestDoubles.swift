@@ -1,33 +1,44 @@
 import Foundation
 @testable import HealthyHeroes
 
-final class InMemoryProfileRepository: ProfileRepository {
+final class InMemoryProfileRepository: GameStateRepository {
     var profile: ChildProfile?
     private(set) var savedProfiles: [ChildProfile] = []
+    private(set) var entries: [FoodLogEntry] = []
+    var commitError: Error?
 
     init(profile: ChildProfile? = nil) {
         self.profile = profile
     }
 
-    func loadProfile() throws -> ChildProfile? {
+    func loadProfile() async throws -> ChildProfile? {
         profile
     }
 
-    func saveProfile(_ profile: ChildProfile) throws {
+    func saveProfile(_ profile: ChildProfile) async throws {
         self.profile = profile
         savedProfiles.append(profile)
     }
-}
 
-final class InMemoryFoodLogRepository: FoodLogRepository {
-    private(set) var entries: [FoodLogEntry] = []
-
-    func fetchEntries() throws -> [FoodLogEntry] {
+    func fetchEntries() async throws -> [FoodLogEntry] {
         entries
     }
 
-    func addEntry(_ entry: FoodLogEntry) throws {
+    func addEntry(_ entry: FoodLogEntry) async throws {
         entries.append(entry)
+    }
+
+    func commitFoodLog(_ entry: FoodLogEntry, updatedProfile: ChildProfile) async throws {
+        if let commitError { throw commitError }
+        entries.append(entry)
+        profile = updatedProfile
+        savedProfiles.append(updatedProfile)
+    }
+
+    func commitRewardOpened(_ rewardID: RewardID, updatedProfile: ChildProfile) async throws {
+        if let commitError { throw commitError }
+        profile = updatedProfile
+        savedProfiles.append(updatedProfile)
     }
 }
 

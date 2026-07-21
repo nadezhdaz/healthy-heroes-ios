@@ -38,13 +38,19 @@ struct MysteryPackView: View {
                             .foregroundStyle(.secondary)
 
                         HStack(spacing: 12) {
-                            Button(buttonTitle, action: advance)
+                            Button(buttonTitle) {
+                                Task {
+                                    await advance()
+                                }
+                            }
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.large)
 
                             if let reward = revealedReward, reward.type == .wardrobeItem {
                                 Button("Try On") {
-                                    equipReward(reward)
+                                    Task {
+                                        await equipReward(reward)
+                                    }
                                 }
                                 .buttonStyle(.bordered)
                                 .controlSize(.large)
@@ -134,7 +140,7 @@ struct MysteryPackView: View {
         }
     }
 
-    private func advance() {
+    private func advance() async {
         switch state {
         case .closed:
             state = .opening(step: 0)
@@ -142,7 +148,7 @@ struct MysteryPackView: View {
             if step < 1 {
                 state = .opening(step: step + 1)
             } else {
-                revealFirstReward()
+                await revealFirstReward()
             }
         case .revealed:
             state = .finished
@@ -151,14 +157,14 @@ struct MysteryPackView: View {
         }
     }
 
-    private func revealFirstReward() {
+    private func revealFirstReward() async {
         guard let rewardID = rewardIDs.first,
               let reward = try? openMysteryPackUseCase.open(rewardID: rewardID) else {
             state = .finished
             return
         }
 
-        if let profile = try? markRewardOpenedUseCase.markOpened(rewardID: rewardID) {
+        if let profile = try? await markRewardOpenedUseCase.markOpened(rewardID: rewardID) {
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
         }
@@ -166,9 +172,9 @@ struct MysteryPackView: View {
         state = .revealed(reward)
     }
 
-    private func equipReward(_ reward: Reward) {
+    private func equipReward(_ reward: Reward) async {
         do {
-            let profile = try equipItemUseCase.equip(itemID: reward.id)
+            let profile = try await equipItemUseCase.equip(itemID: reward.id)
             eventBus.post(.itemEquipped(reward.id))
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))

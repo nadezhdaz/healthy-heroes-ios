@@ -15,12 +15,9 @@ private extension Font.Weight {
     var fontName: String {
         switch self {
         case .black: return "Black"
-        case .heavy: return "ExtraBold"
+        case .heavy: return "Black"
         case .bold: return "Bold"
-        case .semibold: return "Medium"
-        case .medium: return "Medium"
-        case .light: return "Light"
-        case .thin: return "Thin"
+        case .semibold, .medium: return "Bold"
         default: return "Regular"
         }
     }
