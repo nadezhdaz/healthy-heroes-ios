@@ -53,12 +53,24 @@ struct AssetResolver {
             DesignAsset(resourceName: "Mystery-pack-Half-opened")
         case "mystery_pack_opened":
             DesignAsset(resourceName: "Mystery-pack-opened")
+        case "classes_background":
+            DesignAsset(resourceName: "Classes-background", maxPixelSize: 2_048)
         case "class_knight":
             DesignAsset(resourceName: "Class_knight_icon")
+        case "class_princess":
+            DesignAsset(resourceName: "Class_princess_icon")
         case "class_fairy":
             DesignAsset(resourceName: "Class_fairy_icon")
         case "class_wizard":
             DesignAsset(resourceName: "Class_wizard_icon")
+        case "class_elf":
+            DesignAsset(resourceName: "Class_elf_icon")
+        case "class_mermaid":
+            DesignAsset(resourceName: "Class_mermaid_icon")
+        case "class_unicorn":
+            DesignAsset(resourceName: "Class_unicorn_icon")
+        case "class_dragon":
+            DesignAsset(resourceName: "Class_dragon_icon")
         case "hero_body":
             DesignAsset(resourceName: "MAIN-bolvanka-ver3")
         case "hero_head_1":
@@ -196,7 +208,9 @@ struct DesignImageView<Placeholder: View>: View {
         }
         .task(id: assetID) {
             image = nil
-            image = await resolver.uiImage(for: assetID)
+            let loadedImage = await resolver.uiImage(for: assetID)
+            guard !Task.isCancelled else { return }
+            image = loadedImage
         }
     }
 }

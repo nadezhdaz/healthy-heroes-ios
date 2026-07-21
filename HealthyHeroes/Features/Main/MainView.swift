@@ -16,6 +16,7 @@ struct MainView: View {
             VStack(spacing: 12) {
                 HeroSummaryCard(
                     title: viewModel.heroTitle,
+                    selectedClass: viewModel.selectedClass,
                     xpText: viewModel.totalXPText,
                     mapText: viewModel.mapProgressText,
                     progressValue: viewModel.progressValue,
@@ -63,6 +64,7 @@ struct MainView: View {
 
 private struct HeroSummaryCard: View {
     let title: String
+    let selectedClass: CharacterClass?
     let xpText: String
     let mapText: String
     let progressValue: Double
@@ -74,6 +76,12 @@ private struct HeroSummaryCard: View {
             HStack(alignment: .center, spacing: 16) {
                 HeroPreview(appearance: appearance, equippedItemIDs: equippedItemIDs)
                     .frame(width: 112, height: 116)
+                    .overlay(alignment: .bottomTrailing) {
+                        if let selectedClass {
+                            SelectedClassBadge(characterClass: selectedClass)
+                                .offset(x: 8, y: 6)
+                        }
+                    }
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text(title)
@@ -92,6 +100,28 @@ private struct HeroSummaryCard: View {
                 }
             }
         }
+    }
+}
+
+private struct SelectedClassBadge: View {
+    let characterClass: CharacterClass
+
+    var body: some View {
+        DesignImageView(assetID: characterClass.assetID, contentMode: .fit) {
+            Image(systemName: "shield.fill")
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(GameDesign.green)
+        }
+        .frame(width: 42, height: 42)
+        .padding(4)
+        .background(GameDesign.cream.opacity(0.98), in: Circle())
+        .overlay {
+            Circle()
+                .stroke(GameDesign.green, lineWidth: 2)
+        }
+        .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
+        .accessibilityHidden(true)
     }
 }
 

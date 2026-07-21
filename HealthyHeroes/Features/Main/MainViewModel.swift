@@ -35,6 +35,10 @@ final class MainViewModel: ObservableObject {
         profile?.character.selectedClass?.title ?? "Healthy Hero"
     }
 
+    var selectedClass: CharacterClass? {
+        profile?.character.selectedClass
+    }
+
     var appearance: CharacterAppearance {
         profile?.character.appearance ?? CharacterAppearance()
     }

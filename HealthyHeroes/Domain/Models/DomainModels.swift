@@ -62,25 +62,35 @@ struct CharacterAppearance: Codable, Equatable {
 }
 
 enum CharacterClass: String, Codable, CaseIterable, Identifiable {
-    case guardian
-    case explorer
-    case sproutMage
+    case knight
+    case princess
+    case wizard
+    case fairy
+    case elf
+    case mermaid
+    case unicorn
+    case dragon
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .guardian: "Guardian"
-        case .explorer: "Explorer"
-        case .sproutMage: "Sprout Mage"
+        case .knight: "Knight"
+        case .princess: "Princess"
+        case .wizard: "Wizard"
+        case .fairy: "Fairy"
+        case .elf: "Elf"
+        case .mermaid: "Mermaid"
+        case .unicorn: "Unicorn"
+        case .dragon: "Dragon"
         }
     }
 
     var isAvailableAtStart: Bool {
         switch self {
-        case .guardian, .explorer:
+        case .knight, .princess:
             true
-        case .sproutMage:
+        case .wizard, .fairy, .elf, .mermaid, .unicorn, .dragon:
             false
         }
     }
@@ -91,12 +101,22 @@ enum CharacterClass: String, Codable, CaseIterable, Identifiable {
 
     var assetID: String {
         switch self {
-        case .guardian:
+        case .knight:
             "class_knight"
-        case .explorer:
-            "class_fairy"
-        case .sproutMage:
+        case .princess:
+            "class_princess"
+        case .wizard:
             "class_wizard"
+        case .fairy:
+            "class_fairy"
+        case .elf:
+            "class_elf"
+        case .mermaid:
+            "class_mermaid"
+        case .unicorn:
+            "class_unicorn"
+        case .dragon:
+            "class_dragon"
         }
     }
 }
