@@ -11,6 +11,8 @@ enum AppRoute: Hashable {
     case rewards
     case wardrobe
     case stickerAlbum
+    case miniGames
+    case settings
     case mysteryPack([RewardID])
 }
 

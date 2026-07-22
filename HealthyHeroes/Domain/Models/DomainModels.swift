@@ -39,25 +39,180 @@ struct CharacterState: Codable, Equatable {
     var equippedItemIDs: [WardrobeItemID]
 }
 
+enum CharacterBaseStyle: String, Codable, CaseIterable, Identifiable {
+    case boy = "type_a"
+    case girl = "type_b"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .boy: "Boy"
+        case .girl: "Girl"
+        }
+    }
+}
+
 struct CharacterAppearance: Codable, Equatable {
+    static let defaultFaceStyle = "hero_head_1"
+    static let defaultEarsStyle = "hero_ears_01"
+
+    var baseStyle: CharacterBaseStyle
     var hairStyle: String
     var faceStyle: String
+    var browsStyle: String
     var eyesStyle: String
     var noseStyle: String
+    var mouthStyle: String
     var earsStyle: String
 
     init(
-        hairStyle: String = "hero_hair_01",
-        faceStyle: String = "hero_face_01",
-        eyesStyle: String = "hero_eyes_01",
-        noseStyle: String = "hero_nose_01",
-        earsStyle: String = "hero_ears_01"
+        baseStyle: CharacterBaseStyle? = nil,
+        hairStyle: String? = nil,
+        faceStyle: String? = nil,
+        browsStyle: String? = nil,
+        eyesStyle: String? = nil,
+        noseStyle: String? = nil,
+        mouthStyle: String? = nil,
+        earsStyle: String? = nil
     ) {
-        self.hairStyle = hairStyle
-        self.faceStyle = faceStyle
-        self.eyesStyle = eyesStyle
-        self.noseStyle = noseStyle
-        self.earsStyle = earsStyle
+        let resolvedBaseStyle = baseStyle ?? Self.inferredBaseStyle(
+            from: [hairStyle, browsStyle, eyesStyle, noseStyle, mouthStyle]
+        )
+        let legacyHeadStyle = hairStyle.flatMap { style in
+            style.hasPrefix("hero_head_") ? style : nil
+        }
+
+        self.baseStyle = resolvedBaseStyle
+        self.hairStyle = Self.normalizedFeatureStyle(
+            hairStyle,
+            legacyPrefix: "hero_hair_",
+            currentPrefix: resolvedBaseStyle.hairAssetPrefix,
+            defaultStyle: Self.defaultHairStyle(for: resolvedBaseStyle),
+            replacingLegacyHead: legacyHeadStyle != nil
+        )
+        self.faceStyle = legacyHeadStyle
+            ?? Self.normalizedFaceStyle(faceStyle)
+        self.browsStyle = browsStyle
+            ?? Self.defaultBrowsStyle(for: resolvedBaseStyle)
+        self.eyesStyle = Self.normalizedFeatureStyle(
+            eyesStyle,
+            legacyPrefix: "hero_eyes_",
+            currentPrefix: resolvedBaseStyle.featureAssetPrefix + "eyes",
+            defaultStyle: Self.defaultEyesStyle(for: resolvedBaseStyle)
+        )
+        self.noseStyle = Self.normalizedFeatureStyle(
+            noseStyle,
+            legacyPrefix: "hero_nose_",
+            currentPrefix: resolvedBaseStyle.featureAssetPrefix + "nose",
+            defaultStyle: Self.defaultNoseStyle(for: resolvedBaseStyle)
+        )
+        self.mouthStyle = mouthStyle
+            ?? Self.defaultMouthStyle(for: resolvedBaseStyle)
+        self.earsStyle = earsStyle ?? Self.defaultEarsStyle
+    }
+
+    static func defaultHairStyle(for baseStyle: CharacterBaseStyle) -> String {
+        "\(baseStyle.hairAssetPrefix)1"
+    }
+
+    static func defaultBrowsStyle(for baseStyle: CharacterBaseStyle) -> String {
+        "\(baseStyle.featureAssetPrefix)brows1"
+    }
+
+    static func defaultEyesStyle(for baseStyle: CharacterBaseStyle) -> String {
+        "\(baseStyle.featureAssetPrefix)eyes1"
+    }
+
+    static func defaultNoseStyle(for baseStyle: CharacterBaseStyle) -> String {
+        "\(baseStyle.featureAssetPrefix)nose1"
+    }
+
+    static func defaultMouthStyle(for baseStyle: CharacterBaseStyle) -> String {
+        "\(baseStyle.featureAssetPrefix)mouth1"
+    }
+
+    static func inferredBaseStyle(from styles: [String?]) -> CharacterBaseStyle {
+        styles.compactMap { $0 }.contains { style in
+            style.hasPrefix("g_") || style.hasPrefix("ghairstyle_")
+        } ? .girl : .boy
+    }
+
+    private static func normalizedFaceStyle(_ style: String?) -> String {
+        guard let style, style != "hero_face_01" else {
+            return defaultFaceStyle
+        }
+        return style
+    }
+
+    private static func normalizedFeatureStyle(
+        _ style: String?,
+        legacyPrefix: String,
+        currentPrefix: String,
+        defaultStyle: String,
+        replacingLegacyHead: Bool = false
+    ) -> String {
+        guard !replacingLegacyHead, let style else { return defaultStyle }
+        guard style.hasPrefix(legacyPrefix) else { return style }
+
+        let suffix = style.dropFirst(legacyPrefix.count)
+        guard let index = Int(suffix), (1...4).contains(index) else {
+            return defaultStyle
+        }
+        return "\(currentPrefix)\(index)"
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case baseStyle
+        case hairStyle
+        case faceStyle
+        case browsStyle
+        case eyesStyle
+        case noseStyle
+        case mouthStyle
+        case earsStyle
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            baseStyle: try container.decodeIfPresent(CharacterBaseStyle.self, forKey: .baseStyle),
+            hairStyle: try container.decodeIfPresent(String.self, forKey: .hairStyle),
+            faceStyle: try container.decodeIfPresent(String.self, forKey: .faceStyle),
+            browsStyle: try container.decodeIfPresent(String.self, forKey: .browsStyle),
+            eyesStyle: try container.decodeIfPresent(String.self, forKey: .eyesStyle),
+            noseStyle: try container.decodeIfPresent(String.self, forKey: .noseStyle),
+            mouthStyle: try container.decodeIfPresent(String.self, forKey: .mouthStyle),
+            earsStyle: try container.decodeIfPresent(String.self, forKey: .earsStyle)
+        )
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(baseStyle, forKey: .baseStyle)
+        try container.encode(hairStyle, forKey: .hairStyle)
+        try container.encode(faceStyle, forKey: .faceStyle)
+        try container.encode(browsStyle, forKey: .browsStyle)
+        try container.encode(eyesStyle, forKey: .eyesStyle)
+        try container.encode(noseStyle, forKey: .noseStyle)
+        try container.encode(mouthStyle, forKey: .mouthStyle)
+        try container.encode(earsStyle, forKey: .earsStyle)
+    }
+}
+
+private extension CharacterBaseStyle {
+    var featureAssetPrefix: String {
+        switch self {
+        case .boy: "b_"
+        case .girl: "g_"
+        }
+    }
+
+    var hairAssetPrefix: String {
+        switch self {
+        case .boy: "bhairstyle_"
+        case .girl: "ghairstyle_"
+        }
     }
 }
 
@@ -117,6 +272,28 @@ enum CharacterClass: String, Codable, CaseIterable, Identifiable {
             "class_unicorn"
         case .dragon:
             "class_dragon"
+        }
+    }
+
+    var starterClothingAssetIDs: [String] {
+        switch self {
+        case .knight:
+            ["main_knight_shirt", "main_knight_legs", "main_knight_shoes"]
+        case .princess:
+            ["main_princess_shirt", "main_princess_legs", "main_princess_shoes"]
+        case .wizard, .fairy, .elf, .mermaid, .unicorn, .dragon:
+            []
+        }
+    }
+
+    var starterAccessoryAssetIDs: [String] {
+        switch self {
+        case .knight:
+            ["main_knight_hat", "main_knight_sword"]
+        case .princess:
+            ["main_princess_hat"]
+        case .wizard, .fairy, .elf, .mermaid, .unicorn, .dragon:
+            []
         }
     }
 }

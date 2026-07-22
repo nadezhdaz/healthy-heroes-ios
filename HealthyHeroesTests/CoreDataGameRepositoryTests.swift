@@ -39,6 +39,14 @@ final class CoreDataGameRepositoryTests: XCTestCase {
             unlockedItemIDs: ["wardrobe_leaf_cape"],
             equippedItemIDs: ["wardrobe_leaf_cape"]
         )
+        profile.character.appearance = CharacterAppearance(
+            baseStyle: .girl,
+            hairStyle: "ghairstyle_4",
+            browsStyle: "g_brows3",
+            eyesStyle: "g_eyes2",
+            noseStyle: "g_nose4",
+            mouthStyle: "g_mouth2"
+        )
         profile.character.equippedItemIDs = ["wardrobe_leaf_cape"]
         profile.stickers.unlockedStickerIDs = ["sticker_star"]
 

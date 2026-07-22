@@ -35,12 +35,38 @@ struct AssetResolver {
             DesignAsset(resourceName: "Quests tab")
         case "menu_map":
             DesignAsset(resourceName: "Map tab")
+        case "menu_mini_games":
+            DesignAsset(resourceName: "Mini games tab")
         case "menu_rewards":
             DesignAsset(resourceName: "Rewards")
         case "menu_wardrobe":
             DesignAsset(resourceName: "Customize")
         case "menu_stickers":
             DesignAsset(resourceName: "Stickers_Log")
+        case "main_progress_status":
+            DesignAsset(resourceName: "Status bar")
+        case "main_progress_empty":
+            DesignAsset(resourceName: "Empty bar")
+        case "main_progress_full":
+            DesignAsset(resourceName: "Full bar")
+        case "main_knight_hat":
+            DesignAsset(resourceName: "hat1", maxPixelSize: 2_048)
+        case "main_knight_shirt":
+            DesignAsset(resourceName: "shirt1", maxPixelSize: 2_048)
+        case "main_knight_legs":
+            DesignAsset(resourceName: "legs1", maxPixelSize: 2_048)
+        case "main_knight_shoes":
+            DesignAsset(resourceName: "shoes1", maxPixelSize: 2_048)
+        case "main_knight_sword":
+            DesignAsset(resourceName: "sword1", maxPixelSize: 2_048)
+        case "main_princess_hat":
+            DesignAsset(resourceName: "hatpr1", maxPixelSize: 2_048)
+        case "main_princess_shirt":
+            DesignAsset(resourceName: "shirtpr1", maxPixelSize: 2_048)
+        case "main_princess_legs":
+            DesignAsset(resourceName: "legspr1", maxPixelSize: 2_048)
+        case "main_princess_shoes":
+            DesignAsset(resourceName: "shoespr1", maxPixelSize: 2_048)
         case "food_log_background":
             DesignAsset(resourceName: "Food_log-background", maxPixelSize: 2_048)
         case "map_background":
@@ -73,6 +99,10 @@ struct AssetResolver {
             DesignAsset(resourceName: "Class_dragon_icon")
         case "hero_body":
             DesignAsset(resourceName: "MAIN-bolvanka-ver3")
+        case "hero_body_no_head":
+            DesignAsset(resourceName: "MAIN-bolvanka-No-head")
+        case "hero_body_nude_no_head":
+            DesignAsset(resourceName: "NUDE-bolvanka-No-head")
         case "hero_head_1":
             DesignAsset(resourceName: "Head-bolvanka-Orig")
         case "hero_head_2":
@@ -125,9 +155,22 @@ struct AssetResolver {
             DesignAsset(resourceName: "Sticker_Apple")
         case "reward_explorer_badge", "class_explorer_badge":
             DesignAsset(resourceName: "Class_fairy_icon")
+        case let assetID where Self.isCharacterFeatureAssetID(assetID):
+            DesignAsset(resourceName: assetID)
         default:
             nil
         }
+    }
+
+    private static func isCharacterFeatureAssetID(_ assetID: String) -> Bool {
+        let prefixes = [
+            "b_brows", "g_brows",
+            "b_eyes", "g_eyes",
+            "bhairstyle_", "ghairstyle_",
+            "b_mouth", "g_mouth",
+            "b_nose", "g_nose"
+        ]
+        return prefixes.contains { assetID.hasPrefix($0) }
     }
 
     func rewardImageName(for reward: Reward) -> String {

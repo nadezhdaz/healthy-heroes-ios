@@ -8,62 +8,88 @@ struct ClassSelectionView: View {
 
     let router: AppRouter
     let selectStarterClassUseCase: any SelectStarterClassUseCase
+    let profileRepository: any ProfileRepository
     let eventBus: AppEventBus
 
     @State private var selectedClass: CharacterClass = .knight
+    @State private var appearance = CharacterAppearance()
     @State private var errorMessage: String?
 
     var body: some View {
         LandscapeGameScreen(
-            title: "Which Hero Are You?",
+            title: "Choose Class",
             backgroundAssetID: "classes_background",
             fallbackColor: Color.cyan.opacity(0.1)
         ) { size in
             let cardHeight = max(92, min(132, size.height * 0.24))
 
-            VStack(spacing: 10) {
-                ScrollView {
-                    LazyVGrid(columns: Self.gridColumns, spacing: 10) {
-                        ForEach(CharacterClass.allCases) { characterClass in
-                            ClassCard(
-                                characterClass: characterClass,
-                                isSelected: selectedClass == characterClass,
-                                height: cardHeight
-                            ) {
-                                selectedClass = characterClass
-                                errorMessage = nil
+            HStack(spacing: 14) {
+                GamePanel {
+                    VStack(spacing: 8) {
+                        Text(selectedClass.title)
+                            .font(.headline)
+
+                        HeroArtwork(
+                            appearance: appearance,
+                            equippedItemIDs: [],
+                            selectedClass: selectedClass
+                        )
+                        .padding(4)
+                    }
+                }
+                .frame(width: min(270, size.width * 0.31))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(selectedClass.title) costume preview")
+
+                VStack(spacing: 10) {
+                    ScrollView {
+                        LazyVGrid(columns: Self.gridColumns, spacing: 10) {
+                            ForEach(CharacterClass.allCases) { characterClass in
+                                ClassCard(
+                                    characterClass: characterClass,
+                                    isSelected: selectedClass == characterClass,
+                                    height: cardHeight
+                                ) {
+                                    withAnimation(.easeInOut(duration: 0.18)) {
+                                        selectedClass = characterClass
+                                    }
+                                    errorMessage = nil
+                                }
                             }
                         }
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
-                }
-                .scrollIndicators(.hidden)
+                    .scrollIndicators(.hidden)
 
-                HStack(spacing: 16) {
-                    Text("Knight and Princess are ready. More heroes unlock later.")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                    HStack(spacing: 16) {
+                        Text("Knight and Princess are ready. More heroes unlock later.")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
 
-                    Spacer(minLength: 8)
+                        Spacer(minLength: 8)
 
-                    Button {
-                        Task {
-                            await confirm()
+                        Button {
+                            Task {
+                                await confirm()
+                            }
+                        } label: {
+                            Text("Choose \(selectedClass.title)")
+                                .font(.headline)
+                                .frame(minWidth: 160, minHeight: 48)
                         }
-                    } label: {
-                        Text("Choose \(selectedClass.title)")
-                            .font(.headline)
-                            .frame(minWidth: 160, minHeight: 48)
+                        .buttonStyle(.borderedProminent)
+                        .tint(GameDesign.green)
+                        .accessibilityHint("Saves this class and continues")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(GameDesign.green)
-                    .accessibilityHint("Saves this class and continues")
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14))
             }
+        }
+        .task {
+            await loadAppearance()
         }
         .overlay(alignment: .bottom) {
             if let errorMessage {
@@ -74,6 +100,11 @@ struct ClassSelectionView: View {
                     .padding()
             }
         }
+    }
+
+    private func loadAppearance() async {
+        guard let profile = try? await profileRepository.loadProfile() else { return }
+        appearance = profile.character.appearance
     }
 
     private func confirm() async {

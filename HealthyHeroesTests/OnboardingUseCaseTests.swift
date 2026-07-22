@@ -37,6 +37,25 @@ final class OnboardingUseCaseTests: XCTestCase {
         )
     }
 
+    func testAvailableClassesProvideCompleteStarterCostumes() {
+        XCTAssertEqual(
+            CharacterClass.knight.starterClothingAssetIDs,
+            ["main_knight_shirt", "main_knight_legs", "main_knight_shoes"]
+        )
+        XCTAssertEqual(
+            CharacterClass.knight.starterAccessoryAssetIDs,
+            ["main_knight_hat", "main_knight_sword"]
+        )
+        XCTAssertEqual(
+            CharacterClass.princess.starterClothingAssetIDs,
+            ["main_princess_shirt", "main_princess_legs", "main_princess_shoes"]
+        )
+        XCTAssertEqual(
+            CharacterClass.princess.starterAccessoryAssetIDs,
+            ["main_princess_hat"]
+        )
+    }
+
     func testCreateCharacterSavesAppearanceAndOnboardingState() async throws {
         let profileRepository = InMemoryProfileRepository()
         let configRepository = StaticGameConfigRepository(quests: [makeQuest()])

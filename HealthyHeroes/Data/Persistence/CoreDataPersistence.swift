@@ -86,10 +86,13 @@ private final class ChildProfileEntity: NSManagedObject {
 
     @NSManaged var profileID: String
     @NSManaged var selectedClass: String?
+    @NSManaged var baseStyle: String?
     @NSManaged var hairStyle: String
     @NSManaged var faceStyle: String
+    @NSManaged var browsStyle: String?
     @NSManaged var eyesStyle: String
     @NSManaged var noseStyle: String
+    @NSManaged var mouthStyle: String?
     @NSManaged var earsStyle: String
     @NSManaged var totalXP: Int64
     @NSManaged var mapPosition: Int64
@@ -351,10 +354,13 @@ final class CoreDataGameRepository: GameStateRepository, @unchecked Sendable {
             id: entity.profileID,
             character: CharacterState(
                 appearance: CharacterAppearance(
+                    baseStyle: entity.baseStyle.flatMap(CharacterBaseStyle.init(rawValue:)),
                     hairStyle: entity.hairStyle,
                     faceStyle: entity.faceStyle,
+                    browsStyle: entity.browsStyle,
                     eyesStyle: entity.eyesStyle,
                     noseStyle: entity.noseStyle,
+                    mouthStyle: entity.mouthStyle,
                     earsStyle: entity.earsStyle
                 ),
                 selectedClass: selectedClass,
@@ -404,10 +410,13 @@ final class CoreDataGameRepository: GameStateRepository, @unchecked Sendable {
 
         entity.profileID = profile.id
         entity.selectedClass = profile.character.selectedClass?.rawValue
+        entity.baseStyle = profile.character.appearance.baseStyle.rawValue
         entity.hairStyle = profile.character.appearance.hairStyle
         entity.faceStyle = profile.character.appearance.faceStyle
+        entity.browsStyle = profile.character.appearance.browsStyle
         entity.eyesStyle = profile.character.appearance.eyesStyle
         entity.noseStyle = profile.character.appearance.noseStyle
+        entity.mouthStyle = profile.character.appearance.mouthStyle
         entity.earsStyle = profile.character.appearance.earsStyle
         entity.totalXP = Int64(profile.progress.totalXP)
         entity.mapPosition = Int64(profile.progress.mapPosition)

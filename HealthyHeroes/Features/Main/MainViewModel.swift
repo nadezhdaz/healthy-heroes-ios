@@ -103,6 +103,10 @@ final class MainViewModel: ObservableObject {
         router.show(.foodLog)
     }
 
+    func goBack() {
+        router.pop()
+    }
+
     func openQuests() {
         router.show(.quests)
     }
@@ -121,6 +125,14 @@ final class MainViewModel: ObservableObject {
 
     func openStickerAlbum() {
         router.show(.stickerAlbum)
+    }
+
+    func openMiniGames() {
+        router.show(.miniGames)
+    }
+
+    func openSettings() {
+        router.show(.settings)
     }
 
     func followFirstSessionCTA() {

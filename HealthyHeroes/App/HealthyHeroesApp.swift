@@ -69,6 +69,7 @@ private struct AppRootView: View {
             ClassSelectionView(
                 router: container.router,
                 selectStarterClassUseCase: container.selectStarterClassUseCase,
+                profileRepository: container.profileRepository,
                 eventBus: container.eventBus
             )
         case .mainHub:
@@ -106,6 +107,10 @@ private struct AppRootView: View {
             )
         case .stickerAlbum:
             StickerAlbumView(profileRepository: container.profileRepository, eventBus: container.eventBus)
+        case .miniGames:
+            MainHubComingSoonView(title: "MINI GAMES", systemImage: "gamecontroller.fill")
+        case .settings:
+            MainHubComingSoonView(title: "SETTINGS", systemImage: "gearshape.fill")
         case let .mysteryPack(rewardIDs):
             MysteryPackView(
                 rewardIDs: rewardIDs,
