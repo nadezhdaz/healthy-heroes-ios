@@ -12,15 +12,18 @@ struct CharacterCreationView: View {
 
     var body: some View {
         LandscapeGameScreen(title: "Create Hero", fallbackColor: Color.green.opacity(0.08)) { size in
-            HStack(spacing: 18) {
+            let portrait = size.width < 600
+            let layout = portrait ? AnyLayout(VStackLayout(spacing: 12)) : AnyLayout(HStackLayout(spacing: 18))
+            layout {
                 GamePanel {
                     HeroPreview(appearance: appearance, equippedItemIDs: [])
                         .frame(
-                            width: min(280, size.width * 0.30),
-                            height: min(320, size.height * 0.70)
+                            width: portrait ? min(240, size.width * 0.7) : min(280, size.width * 0.30),
+                            height: portrait ? max(100, min(220, size.height * 0.29)) : min(320, size.height * 0.70)
                         )
                 }
-                .frame(width: min(360, size.width * 0.38))
+                .frame(width: portrait ? size.width : min(360, size.width * 0.38))
+                .frame(height: portrait ? max(130, min(250, size.height * 0.34)) : nil)
 
                 GamePanel(alignment: .leading) {
                     customizationPanel
@@ -163,6 +166,7 @@ struct CharacterCreationView: View {
 
         do {
             let profile = try await createCharacterUseCase.create(appearance: appearance)
+            eventBus.post(.characterCreated)
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
             router.show(.classSelection)

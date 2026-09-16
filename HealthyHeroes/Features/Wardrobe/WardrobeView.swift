@@ -1,155 +1,119 @@
-import Combine
 import SwiftUI
 
 struct WardrobeView: View {
-    @State private var itemIDs: [WardrobeItemID] = []
-    @State private var equippedItemIDs: [WardrobeItemID] = []
-    @State private var appearance = CharacterAppearance()
+    @State private var profile: ChildProfile?
+    @State private var catalog: [WardrobeItemDefinition] = []
+    @State private var selectedCategory: WardrobeCategory = .head
     @State private var errorMessage: String?
-    @State private var cancellable: AnyCancellable?
+    @State private var isEquipping = false
 
     let profileRepository: any ProfileRepository
     let equipItemUseCase: any EquipItemUseCase
     let eventBus: AppEventBus
 
     var body: some View {
-        LandscapeGameScreen(title: "Wardrobe", backgroundAssetID: "wardrobe_background", fallbackColor: Color.green.opacity(0.08)) { size in
-            HStack(spacing: 18) {
-                GamePanel {
-                    HeroPreview(appearance: appearance, equippedItemIDs: equippedItemIDs)
-                        .frame(width: min(270, size.width * 0.3), height: min(300, size.height * 0.68))
-                }
-                .frame(width: min(360, size.width * 0.38))
+        LandscapeGameScreen(title: "Wardrobe", backgroundAssetID: "wardrobe_background") { size in
+            let portrait = size.width < 600
+            let layout = portrait ? AnyLayout(VStackLayout(spacing: 12)) : AnyLayout(HStackLayout(spacing: 18))
+            layout {
+                HeroArtwork(
+                    appearance: profile?.character.appearance ?? CharacterAppearance(),
+                    equippedItemIDs: profile?.wardrobe.equippedItemIDs ?? [],
+                    selectedClass: profile?.character.selectedClass
+                )
+                .frame(width: portrait ? size.width : min(300, size.width * 0.36))
+                .frame(height: portrait ? min(230, size.height * 0.35) : nil)
+                .accessibilityLabel("Your equipped hero")
 
-                GamePanel(alignment: .leading) {
-                    if itemIDs.isEmpty {
-                        GameEmptyStateView(
-                            title: "Wardrobe is empty",
-                            systemImage: "tshirt",
-                            message: "Unlocked reward items will appear here."
-                        )
-                    } else {
-                        ScrollView {
-                            LazyVGrid(
-                                columns: [
-                                    GridItem(.flexible(), spacing: 12),
-                                    GridItem(.flexible(), spacing: 12)
-                                ],
-                                spacing: 12
-                            ) {
-                                ForEach(itemIDs, id: \.self) { itemID in
-                                    WardrobeItemCard(
-                                        title: displayTitle(for: itemID),
-                                        itemID: itemID,
-                                        isEquipped: equippedItemIDs.contains(itemID)
-                                    ) {
-                                        Task {
-                                            await equip(itemID)
-                                        }
-                                    }
-                                }
+                VStack(spacing: 12) {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(WardrobeCategory.allCases) { category in
+                                Button(category.rawValue) { selectedCategory = category }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(category == selectedCategory ? GameDesign.green : .gray)
+                                    .frame(minHeight: 44)
+                            }
+                        }
+                    }
+                    if let errorMessage {
+                        Text(errorMessage).foregroundStyle(.red)
+                        Button("Retry") { Task { await load() } }
+                    }
+                    ScrollView {
+                        let items = catalog.filter { ($0.category ?? .accessories) == selectedCategory }
+                        if items.isEmpty {
+                            Text("Your starter outfit is ready. New rewards will appear here.")
+                                .multilineTextAlignment(.center)
+                                .padding()
+                                .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 14))
+                        }
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 12)], spacing: 12) {
+                            ForEach(items) { item in
+                                itemButton(item)
                             }
                         }
                     }
                 }
             }
         }
-        .overlay(alignment: .bottom) {
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.callout)
-                    .padding()
-                    .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .padding()
-            }
+        .task { await load() }
+        .onReceive(eventBus.events) { event in
+            if case let .profileUpdated(updatedProfile) = event { profile = updatedProfile }
         }
-        .task {
-            await load()
-        }
-        .onAppear {
-            cancellable = eventBus.events.sink { event in
-                if case .profileUpdated = event {
-                    Task { @MainActor in
-                        await load()
-                    }
+    }
+
+    private func itemButton(_ item: WardrobeItemDefinition) -> some View {
+        let unlocked = profile?.wardrobe.unlockedItemIDs.contains(item.id) == true
+        let equipped = profile?.wardrobe.equippedItemIDs.contains(item.id) == true
+        return Button { Task { await equip(item.id) } } label: {
+            VStack(spacing: 10) {
+                DesignImageView(assetID: item.assetID, contentMode: .fit) {
+                    Image(systemName: "tshirt.fill").resizable().scaledToFit()
                 }
+                .frame(height: 76)
+                .opacity(unlocked ? 1 : 0.35)
+                Text(item.title).font(.headline)
+                Label(equipped ? "Equipped" : unlocked ? "Try On" : "Locked", systemImage: equipped ? "checkmark.circle.fill" : unlocked ? "plus.circle" : "lock.fill")
+                    .font(.caption.bold())
             }
+            .foregroundStyle(GameDesign.green)
+            .padding(14)
+            .frame(maxWidth: .infinity, minHeight: 170)
+            .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 20))
         }
+        .buttonStyle(.plain)
+        .disabled(!unlocked || equipped || isEquipping)
+        .accessibilityElement(children: .combine)
     }
 
     @MainActor
     private func load() async {
-        guard let profile = try? await profileRepository.loadProfile() else {
-            itemIDs = []
-            equippedItemIDs = []
-            return
+        do {
+            catalog = try BundledConfigLoader().decode([WardrobeItemDefinition].self, fileName: "wardrobe_items")
+            profile = try await profileRepository.loadProfile()
+            errorMessage = nil
+        } catch {
+            errorMessage = "Could not load your wardrobe. Please try again."
         }
-        itemIDs = profile.wardrobe.unlockedItemIDs
-        equippedItemIDs = profile.wardrobe.equippedItemIDs
-        appearance = profile.character.appearance
     }
 
     @MainActor
     private func equip(_ itemID: WardrobeItemID) async {
+        guard !isEquipping,
+              profile?.wardrobe.equippedItemIDs.contains(itemID) != true else { return }
+        isEquipping = true
+        defer { isEquipping = false }
         do {
-            let profile = try await equipItemUseCase.equip(itemID: itemID)
-            itemIDs = profile.wardrobe.unlockedItemIDs
-            equippedItemIDs = profile.wardrobe.equippedItemIDs
-            appearance = profile.character.appearance
+            let updated = try await equipItemUseCase.equip(itemID: itemID)
+            profile = updated
             errorMessage = nil
+            eventBus.post(.rewardEquipped(itemID))
             eventBus.post(.itemEquipped(itemID))
-            eventBus.post(.profileUpdated(profile))
-            eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
+            eventBus.post(.profileUpdated(updated))
+            eventBus.post(.firstSessionProgressUpdated(updated.onboarding))
         } catch {
-            errorMessage = "This item is still locked."
+            errorMessage = "Could not equip this item. Please try again."
         }
-    }
-
-    private func displayTitle(for itemID: WardrobeItemID) -> String {
-        switch itemID {
-        case "wardrobe_leaf_cape":
-            "Leaf Cape"
-        default:
-            itemID
-        }
-    }
-}
-
-private struct WardrobeItemCard: View {
-    let title: String
-    let itemID: WardrobeItemID
-    let isEquipped: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 10) {
-                DesignImageView(assetID: itemID, contentMode: .fit) {
-                    Image(systemName: "tshirt.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.green)
-                }
-                .frame(width: 58, height: 58)
-
-                Text(title)
-                    .font(.headline)
-                    .lineLimit(1)
-
-                Label(
-                    isEquipped ? "Equipped" : "Try On",
-                    systemImage: isEquipped ? "checkmark.circle.fill" : "plus.circle"
-                )
-                .font(.caption.bold())
-                .foregroundStyle(isEquipped ? Color.green : Color.secondary)
-            }
-            .frame(maxWidth: .infinity, minHeight: 144)
-            .padding(12)
-            .background(GameDesign.cream)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
-        }
-        .buttonStyle(.plain)
     }
 }

@@ -1,5 +1,17 @@
 import SwiftUI
 
+struct GameImageButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1)
+            .brightness(configuration.isPressed ? -0.08 : 0)
+            .contentShape(Rectangle())
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
 enum GameDesign {
     static let cream = Color(red: 0.99, green: 0.96, blue: 0.78)
     static let green = Color(red: 0.25, green: 0.55, blue: 0.12)
@@ -66,8 +78,10 @@ struct LandscapeGameScreen<Content: View>: View {
                         header
                     }
 
-                    content(proxy.size)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    GeometryReader { contentProxy in
+                        content(contentProxy.size)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    }
                 }
                 .padding(.leading, horizontalPadding(for: proxy, edgeInset: proxy.safeAreaInsets.leading))
                 .padding(.trailing, horizontalPadding(for: proxy, edgeInset: proxy.safeAreaInsets.trailing))
@@ -151,7 +165,7 @@ struct LandscapeGameScreen<Content: View>: View {
     }
 
     private func horizontalPadding(for proxy: GeometryProxy, edgeInset: CGFloat) -> CGFloat {
-        max(24, edgeInset + 12, min(56, proxy.size.width * 0.035))
+        max(12, edgeInset + 8, min(40, proxy.size.width * 0.025))
     }
 
     private func verticalTopPadding(for proxy: GeometryProxy) -> CGFloat {

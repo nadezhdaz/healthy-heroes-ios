@@ -386,7 +386,9 @@ final class CoreDataGameRepository: GameStateRepository, @unchecked Sendable {
                 hasOpenedFirstReward: entity.hasOpenedFirstReward,
                 hasEquippedFirstItem: entity.hasEquippedFirstItem,
                 isFirstSessionCompleted: entity.isFirstSessionCompleted
-            )
+            ),
+            openedRewardIDs: rewardEntities.contains(where: \.isOpened)
+                ? rewardEntities.filter(\.isOpened).map(\.rewardID) : nil
         )
     }
 
@@ -476,6 +478,9 @@ final class CoreDataGameRepository: GameStateRepository, @unchecked Sendable {
             if existingEntity == nil {
                 entity.isOpened = false
                 entity.unlockedAt = Date()
+            }
+            if profile.openedRewardIDs?.contains(rewardID) == true {
+                entity.isOpened = true
             }
         }
         entitiesByID.values.forEach(context.delete)

@@ -18,8 +18,12 @@ struct MainView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let artworkSize = fittedArtworkSize(in: proxy.size)
-
+            if proxy.size.width < proxy.size.height {
+                PhoneMainHub(viewModel: viewModel)
+            } else {
+            VStack(spacing: 0) {
+            GeometryReader { sceneProxy in
+            let artworkSize = fittedArtworkSize(in: sceneProxy.size)
             ZStack {
                 MainHubBackdrop(
                     assetID: backgroundAssetID,
@@ -32,6 +36,7 @@ struct MainView: View {
                     selectedClass: viewModel.selectedClass,
                     appearance: viewModel.appearance,
                     equippedItemIDs: viewModel.equippedItemIDs,
+                    highlightsFoodLog: viewModel.profile?.onboarding.hasCompletedFirstFoodLog == false,
                     goBack: viewModel.goBack,
                     openRewards: viewModel.openRewards,
                     openSettings: viewModel.openSettings,
@@ -43,9 +48,17 @@ struct MainView: View {
                 )
                 .frame(width: artworkSize.width, height: artworkSize.height)
             }
-            .frame(width: proxy.size.width, height: proxy.size.height)
+            .frame(width: sceneProxy.size.width, height: sceneProxy.size.height)
+            }
+                HStack {
+                    Button("Sticker Album", systemImage: "star.square.fill", action: viewModel.openStickerAlbum)
+                        .buttonStyle(.borderedProminent)
+                        .tint(GameDesign.green)
+                    MainGuidance(viewModel: viewModel)
+                }.padding(.horizontal).padding(.vertical, 8)
+            }
+            }
         }
-        .ignoresSafeArea()
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .task {
@@ -132,6 +145,7 @@ private struct MainHubScene: View {
     let selectedClass: CharacterClass?
     let appearance: CharacterAppearance
     let equippedItemIDs: [WardrobeItemID]
+    let highlightsFoodLog: Bool
     let goBack: () -> Void
     let openRewards: () -> Void
     let openSettings: () -> Void
@@ -244,6 +258,14 @@ private struct MainHubScene: View {
                     .fill(GameDesign.cream.opacity(0.92))
             }
             .frame(width: scaled(referenceSize), height: scaled(referenceSize))
+            .frame(minWidth: 44, minHeight: 44)
+            .overlay {
+                if assetID == "menu_food", highlightsFoodLog {
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(.yellow, lineWidth: 3)
+                        .allowsHitTesting(false)
+                }
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(MainMenuButtonStyle())
@@ -375,6 +397,120 @@ struct MainHubComingSoonView: View {
             }
             .frame(maxWidth: 460, maxHeight: 220)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+private struct PhoneMainHub: View {
+    @ObservedObject var viewModel: MainViewModel
+
+    var body: some View {
+        GeometryReader { proxy in
+            VStack(spacing: 8) {
+                HStack(spacing: 12) {
+                    menuButton("menu_rewards", "Rewards", action: viewModel.openRewards).frame(width: 48)
+                    menuButton("menu_wardrobe", "Wardrobe", action: viewModel.openWardrobe).frame(width: 48)
+                    Spacer()
+                    menuButton("menu_stickers", "Sticker Album", action: viewModel.openStickerAlbum).frame(width: 48)
+                    menuButton("settings_button", "Settings", action: viewModel.openSettings).frame(width: 48)
+                }
+                .frame(height: 48)
+
+                ZStack(alignment: .top) {
+                    PhoneProgressMeter(progress: viewModel.progressValue)
+                        .frame(width: min(proxy.size.width * 0.70, 300), height: min(proxy.size.height * 0.23, 170))
+                        .zIndex(1)
+                    HeroArtwork(
+                        appearance: viewModel.appearance,
+                        equippedItemIDs: viewModel.equippedItemIDs,
+                        selectedClass: viewModel.selectedClass
+                    )
+                    .padding(.top, min(proxy.size.height * 0.17, 120))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Your hero")
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .layoutPriority(-1)
+
+                MainGuidance(viewModel: viewModel)
+
+                HStack(spacing: 6) {
+                    menuButton("Phone_Food diary tab", "Food diary", action: viewModel.openFoodLog)
+                        .overlay {
+                            if viewModel.profile?.onboarding.hasCompletedFirstFoodLog == false {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(.yellow, lineWidth: 3)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                    menuButton("Phone_Quests tab", "Quests", action: viewModel.openQuests)
+                    menuButton("Phone_Map tab", "Map", action: viewModel.openMap)
+                    menuButton("Phone_Mini games tab", "Mini games", action: viewModel.openMiniGames)
+                }
+                .frame(height: max(54, min(90, (proxy.size.width - 18) / 4)))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background {
+                DesignImageView(assetID: "Phone_Forest-background", contentMode: .fill) { GameDesign.green }
+                    .ignoresSafeArea()
+            }
+        }
+    }
+
+    private func menuButton(_ assetID: String, _ label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            DesignImageView(assetID: assetID, contentMode: .fit) {
+                Text(label).font(.caption).padding(4).background(GameDesign.cream)
+            }
+            .frame(minWidth: 44, maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(MainMenuButtonStyle())
+        .accessibilityLabel(label)
+    }
+}
+
+private struct PhoneProgressMeter: View {
+    let progress: Double
+    private var value: Double { min(max(progress, 0), 1) }
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .top) {
+                DesignImageView(assetID: "Phone_Empty Status bar", contentMode: .fit) { Color.clear }
+                DesignImageView(assetID: "Phone_Full Status bar", contentMode: .fit) { Color.clear }
+                    .mask(alignment: .leading) {
+                        Rectangle().frame(width: proxy.size.width * value)
+                    }
+                Text("\(Int((value * 100).rounded()))%")
+                    .font(GameDesign.font(max(18, proxy.size.width * 0.09), weight: .black))
+                    .foregroundStyle(GameDesign.green)
+                    .padding(.top, 3)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Hero progress")
+        .accessibilityValue("\(Int((value * 100).rounded())) percent")
+        .allowsHitTesting(false)
+    }
+}
+
+private struct MainGuidance: View {
+    @ObservedObject var viewModel: MainViewModel
+
+    var body: some View {
+        if let message = viewModel.firstSessionCTA {
+            Button(action: viewModel.followFirstSessionCTA) {
+                Label(message, systemImage: "sparkles")
+                    .font(.callout.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(GameDesign.green)
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: 44)
+                    .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(.plain)
         }
     }
 }

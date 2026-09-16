@@ -101,6 +101,10 @@ final class LogFoodUseCaseTests: XCTestCase {
         XCTAssertEqual(updatedProfile.unlockedRewardIDs, ["wardrobe_leaf_cape"])
         XCTAssertEqual(updatedProfile.wardrobe.unlockedItemIDs, ["wardrobe_leaf_cape"])
         XCTAssertEqual(profileRepository.savedProfiles.last, updatedProfile)
+        XCTAssertEqual(updatedProfile.openedRewardIDs, ["wardrobe_leaf_cape"])
+        let reopened = try await useCase.markOpened(rewardID: "wardrobe_leaf_cape")
+        XCTAssertEqual(reopened, updatedProfile)
+        XCTAssertEqual(profileRepository.savedProfiles.count, 1)
     }
 
     func testEquippingUnlockedFirstRewardCompletesFirstSessionAndPersists() async throws {

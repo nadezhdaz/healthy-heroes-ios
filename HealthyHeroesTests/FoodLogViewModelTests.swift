@@ -3,6 +3,34 @@ import XCTest
 
 @MainActor
 final class FoodLogViewModelTests: XCTestCase {
+    func testFirstFoodEventUsesCommittedProfileWithoutWaitingForGuidance() async {
+        let repository = InMemoryProfileRepository(profile: makeProfile(quests: []))
+        let useCase = LogFoodUseCaseImpl(
+            gameStateRepository: repository,
+            gameConfigRepository: StaticGameConfigRepository(quests: []),
+            progressEngine: ProgressEngine(), questEngine: QuestEngine(),
+            rewardEngine: RewardEngine(), mapEngine: MapEngine()
+        )
+        let bus = AppEventBus()
+        let defaults = UserDefaults(suiteName: #function)!
+        defaults.removePersistentDomain(forName: #function)
+        defer { defaults.removePersistentDomain(forName: #function) }
+        let analytics = AppAnalytics(eventBus: bus, defaults: defaults)
+        let viewModel = FoodLogViewModel(logFoodUseCase: useCase, eventBus: bus, router: AppRouter())
+
+        repository.commitError = NSError(domain: "test", code: 1)
+        let failed = await viewModel.log(.fruit)
+        XCTAssertFalse(failed)
+        XCTAssertEqual(analytics.eventNames, ["app_opened"])
+
+        repository.commitError = nil
+        let first = await viewModel.log(.fruit)
+        let second = await viewModel.log(.water)
+        XCTAssertTrue(first && second)
+        XCTAssertEqual(analytics.eventNames, ["app_opened", "food_logged", "first_food_logged", "food_logged"])
+        XCTAssertEqual(repository.entries.count, 2)
+    }
+
     func testFailureClearsPreviousResultAndShowsError() async {
         let useCase = SequencedLogFoodUseCase(outcomes: [
             .success(makeLogFoodResult()),
@@ -36,7 +64,8 @@ final class FoodLogViewModelTests: XCTestCase {
             unlockedRewardIDs: [],
             didAdvanceOnMap: false,
             smallProgressAwarded: 5,
-            bigProgressAwarded: 0
+            bigProgressAwarded: 0,
+            isFirstFoodLog: false
         )
     }
 }

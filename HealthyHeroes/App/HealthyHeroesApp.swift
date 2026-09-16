@@ -58,7 +58,7 @@ private struct AppRootView: View {
     private func destination(for route: AppRoute) -> some View {
         switch route {
         case .start:
-            StartView(router: container.router)
+            StartView(router: container.router, eventBus: container.eventBus)
         case .characterCreation:
             CharacterCreationView(
                 router: container.router,
@@ -86,18 +86,25 @@ private struct AppRootView: View {
                 viewModel: FoodLogViewModel(
                     logFoodUseCase: container.logFoodUseCase,
                     eventBus: container.eventBus,
-                    router: container.router
+                    router: container.router,
+                    profileRepository: container.profileRepository
                 )
             )
         case .map:
-            MapView(profileRepository: container.profileRepository, eventBus: container.eventBus)
+            MapView(
+                profileRepository: container.profileRepository,
+                mapConfigRepository: container.gameConfigRepository,
+                eventBus: container.eventBus
+            )
         case .quests:
             QuestsView(profileRepository: container.profileRepository, eventBus: container.eventBus)
         case .rewards:
             RewardsView(
                 profileRepository: container.profileRepository,
                 rewardCatalogRepository: container.rewardCatalogRepository,
-                eventBus: container.eventBus
+                eventBus: container.eventBus,
+                router: container.router,
+                foodLogRepository: container.foodLogRepository
             )
         case .wardrobe:
             WardrobeView(
@@ -170,7 +177,7 @@ private struct RootFlowView: View {
                         .tint(GameDesign.green)
                 }
             case .onboarding:
-                StartView(router: container.router)
+                StartView(router: container.router, eventBus: container.eventBus)
             case .main:
                 MainView(
                     viewModel: MainViewModel(

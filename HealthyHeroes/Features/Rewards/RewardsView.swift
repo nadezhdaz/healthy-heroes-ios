@@ -1,96 +1,94 @@
-import Combine
 import SwiftUI
 
 struct RewardsView: View {
     @State private var rewards: [Reward] = []
-    @State private var cancellable: AnyCancellable?
+    @State private var profile: ChildProfile?
+    @State private var entries: [FoodLogEntry] = []
+    @State private var errorMessage: String?
 
     let profileRepository: any ProfileRepository
     let rewardCatalogRepository: any RewardCatalogRepository
     let eventBus: AppEventBus
+    let router: AppRouter
+    let foodLogRepository: any FoodLogRepository
 
     var body: some View {
-        LandscapeGameScreen(
-            title: "REWARDS",
-            backgroundAssetID: "rewards_background",
-            fallbackColor: Color.orange.opacity(0.12),
-            titleColor: GameDesign.purple
-        ) { size in
-            GamePanel(alignment: .leading) {
-                if rewards.isEmpty {
-                    GameEmptyStateView(
-                        title: "No rewards yet",
-                        systemImage: "gift",
-                        message: "Complete quests to unlock mystery packs."
-                    )
-                } else {
-                    ScrollView {
-                        LazyVGrid(
-                            columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 5),
-                            spacing: 12
-                        ) {
-                            ForEach(rewards) { reward in
-                                RewardCard(reward: reward, systemImage: iconName(for: reward.type))
+        LandscapeGameScreen(title: "REWARDS", backgroundAssetID: "rewards_background", titleColor: GameDesign.purple) { _ in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack {
+                        Button("Wardrobe") { router.show(.wardrobe) }
+                        Button("Sticker Album") { router.show(.stickerAlbum) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(GameDesign.green)
+                    .frame(minHeight: 44)
+
+                    Text("\(profile?.progress.totalXP ?? 0) XP earned")
+                        .font(GameDesign.font(24, weight: .bold))
+                    if let errorMessage {
+                        Text(errorMessage)
+                        Button("Retry") { Task { await load() } }
+                    }
+                    if rewards.isEmpty {
+                        Text("Complete a quest to discover your first reward.")
+                    }
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
+                        ForEach(rewards) { reward in
+                            Button { router.present(.mysteryPack([reward.id])) } label: {
+                                VStack(spacing: 10) {
+                                    DesignImageView(assetID: reward.assetID, contentMode: .fit) {
+                                        Image(systemName: "gift.fill").resizable().scaledToFit()
+                                    }
+                                    .frame(height: 76)
+                                    Text(reward.title).font(.headline)
+                                    Text(profile?.openedRewardIDs?.contains(reward.id) == true ? "View reward" : "Open gift").font(.caption)
+                                }
+                                .foregroundStyle(GameDesign.purple)
+                                .padding(14)
+                                .frame(maxWidth: .infinity, minHeight: 160)
+                                .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 18))
                             }
+                            .buttonStyle(.plain)
                         }
                     }
-                }
-            }
-        }
-        .task {
-            await load()
-        }
-        .onAppear {
-            cancellable = eventBus.events.sink { event in
-                if case .rewardsUnlocked = event {
-                    Task { @MainActor in
-                        await load()
+                    Text("Achievements").font(.title2.bold())
+                    ForEach(profile?.quests.filter { $0.status != .active } ?? []) { quest in
+                        Label(quest.title, systemImage: "checkmark.seal.fill")
+                            .foregroundStyle(GameDesign.green)
+                    }
+                    Text("Your healthy choices").font(.title2.bold())
+                    if entries.isEmpty { Text("Your progress story starts with your first healthy choice.") }
+                    ForEach(entries.reversed()) { entry in
+                        HStack {
+                            Text(entry.customTitle ?? entry.category.title)
+                            Spacer()
+                            Text(entry.createdAt, format: .dateTime.month().day().hour().minute())
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        .padding(12)
+                        .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 12))
                     }
                 }
+                .padding(4)
             }
+        }
+        .task { await load() }
+        .onReceive(eventBus.events) { event in
+            if case .profileUpdated = event { Task { await load() } }
         }
     }
 
     @MainActor
     private func load() async {
-        let unlockedIDs = (try? await profileRepository.loadProfile()?.unlockedRewardIDs) ?? []
-        let allRewards = (try? rewardCatalogRepository.allRewards()) ?? []
-        rewards = allRewards.filter { unlockedIDs.contains($0.id) }
-    }
-
-    private func iconName(for type: RewardType) -> String {
-        switch type {
-        case .wardrobeItem:
-            "tshirt.fill"
-        case .sticker:
-            "star.square.fill"
-        case .classUnlock:
-            "shield.fill"
+        do {
+            profile = try await profileRepository.loadProfile()
+            let unlocked = Set(profile?.unlockedRewardIDs ?? [])
+            rewards = try rewardCatalogRepository.allRewards().filter { unlocked.contains($0.id) }
+            entries = try await foodLogRepository.fetchEntries()
+            errorMessage = nil
+        } catch {
+            errorMessage = "Could not load your rewards. Please try again."
         }
-    }
-}
-
-private struct RewardCard: View {
-    let reward: Reward
-    let systemImage: String
-
-    var body: some View {
-        VStack(spacing: 10) {
-            DesignImageView(assetID: reward.assetID, contentMode: .fit) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 42))
-                    .foregroundStyle(GameDesign.purple)
-            }
-            .frame(width: 58, height: 58)
-            Text(reward.title)
-                .font(GameDesign.font(14, weight: .bold))
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, minHeight: 96)
-        .padding(10)
-        .background(GameDesign.cream)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
     }
 }

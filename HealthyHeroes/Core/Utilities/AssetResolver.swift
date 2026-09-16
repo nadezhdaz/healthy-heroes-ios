@@ -13,6 +13,14 @@ struct AssetResolver {
 
     func asset(for assetID: String) -> DesignAsset? {
         switch assetID {
+        case let assetID where assetID.hasPrefix("Phone_"):
+            DesignAsset(resourceName: assetID, maxPixelSize: 2_556)
+        case "start_scenery":
+            DesignAsset(resourceName: "Start-scenery", maxPixelSize: 2_048)
+        case "start_wordmark":
+            DesignAsset(resourceName: "Start-logo")
+        case "start_play":
+            DesignAsset(resourceName: "Start-play")
         case "start_background":
             DesignAsset(resourceName: "Start-screen", maxPixelSize: 2_048)
         case "back_button":
@@ -71,6 +79,29 @@ struct AssetResolver {
             DesignAsset(resourceName: "Food_log-background", maxPixelSize: 2_048)
         case "map_background":
             DesignAsset(resourceName: "map-screen", maxPixelSize: 2_048)
+        case "map_screen_clear":
+            DesignAsset(resourceName: "MapScreenClear", maxPixelSize: 2_048)
+        case "map_phone_empty":
+            DesignAsset(resourceName: "PhoneMapEmpty", maxPixelSize: 2_556)
+        case "map_phone_full":
+            DesignAsset(resourceName: "PhoneMapFull", maxPixelSize: 2_556)
+        case "map_phone_top":
+            DesignAsset(resourceName: "PhoneMapTop", maxPixelSize: 2_556)
+        case "map_phone_bottom":
+            DesignAsset(resourceName: "PhoneMapBottom", maxPixelSize: 2_556)
+        case "map_phone_separator":
+            // Preserve the source line's 1179 pt width; downsampling by height collapses it.
+            DesignAsset(resourceName: "PhoneMapSeparator", maxPixelSize: 2_048)
+        case "map_phone_decor_overlay":
+            DesignAsset(resourceName: "MapDecorOverlay", maxPixelSize: 2_556)
+        case "map_hero_marker":
+            DesignAsset(resourceName: "MapHeroMarker", maxPixelSize: 1_024)
+        case "map_simple_marker":
+            DesignAsset(resourceName: "MapSimpleMarker", maxPixelSize: 1_024)
+        case "map_epic_marker":
+            DesignAsset(resourceName: "MapEpicMarker", maxPixelSize: 1_024)
+        case let assetID where assetID.hasPrefix("map_tile_"):
+            DesignAsset(resourceName: "MapTile\(assetID.dropFirst(9))", maxPixelSize: 512)
         case "mystery_pack_closed":
             DesignAsset(resourceName: "Mystery-pack-closed")
         case "mystery_pack_background":

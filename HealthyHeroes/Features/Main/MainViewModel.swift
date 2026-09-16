@@ -61,10 +61,10 @@ final class MainViewModel: ObservableObject {
 
     var firstSessionCTA: String? {
         guard let onboarding = profile?.onboarding else {
-            return "Log the first healthy choice"
+            return "Feed your hero to make them stronger"
         }
         if !onboarding.hasCompletedFirstFoodLog {
-            return "Log the first healthy choice"
+            return "Feed your hero to make them stronger"
         }
         if !onboarding.hasCompletedFirstQuest {
             return "Finish the first quest"
@@ -152,6 +152,9 @@ final class MainViewModel: ObservableObject {
 
     private func handle(_ event: AppEvent) {
         switch event {
+        case .appOpened, .playTapped, .characterCreated, .classSelected, .firstFoodLogged,
+             .rewardOpened, .rewardEquipped:
+            break
         case let .profileUpdated(profile):
             self.profile = profile
         case let .firstSessionProgressUpdated(onboarding):

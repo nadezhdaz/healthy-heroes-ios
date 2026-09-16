@@ -2,6 +2,18 @@ import Foundation
 
 @MainActor
 final class FoodLogViewModel: ObservableObject {
+    @Published private(set) var showsFirstFoodTip = false
+    private let profileRepository: (any ProfileRepository)?
+
+    func loadGuidance() async {
+        do {
+            let profile = try await profileRepository?.loadProfile()
+            showsFirstFoodTip = profile.map { !$0.onboarding.hasCompletedFirstFoodLog } ?? false
+        } catch {
+            errorMessage = "Could not load your progress. Please try again."
+        }
+    }
+
     @Published private(set) var isLogging = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var lastResult: LogFoodResult?
@@ -16,8 +28,10 @@ final class FoodLogViewModel: ObservableObject {
     init(
         logFoodUseCase: any LogFoodUseCase,
         eventBus: AppEventBus,
-        router: AppRouter
+        router: AppRouter,
+        profileRepository: (any ProfileRepository)? = nil
     ) {
+        self.profileRepository = profileRepository
         self.logFoodUseCase = logFoodUseCase
         self.eventBus = eventBus
         self.router = router
@@ -41,9 +55,13 @@ final class FoodLogViewModel: ObservableObject {
         do {
             let result = try await logFoodUseCase.log(category: category, customTitle: customTitle)
             lastResult = result
+            showsFirstFoodTip = false
             scheduleResultDismissal()
 
             eventBus.post(.foodLogged(result.foodLogEntry))
+            if result.isFirstFoodLog {
+                eventBus.post(.firstFoodLogged)
+            }
             eventBus.post(.profileUpdated(result.updatedProfile))
             eventBus.post(.firstSessionProgressUpdated(result.updatedProfile.onboarding))
 

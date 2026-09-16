@@ -33,6 +33,23 @@ struct FoodLogView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .zIndex(2)
 
+                if viewModel.showsFirstFoodTip {
+                    Text("Choose a fruit, vegetable, water or healthy meal. One tap helps your hero grow!")
+                        .font(.callout)
+                        .foregroundStyle(GameDesign.green)
+                        .padding(10)
+                        .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 12))
+                }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))]) {
+                    ForEach(viewModel.categories) { category in
+                        Button(category.title) { Task { await viewModel.log(category) } }
+                            .buttonStyle(.borderedProminent)
+                            .tint(GameDesign.green)
+                            .frame(minHeight: 44)
+                            .disabled(viewModel.isLogging)
+                    }
+                }
+
                 ZStack(alignment: .bottom) {
                     DesignImageView(assetID: "food_diary_field", contentMode: .fill) {
                         RoundedRectangle(cornerRadius: 30)
@@ -42,7 +59,7 @@ struct FoodLogView: View {
 
                     ScrollView {
                         LazyVGrid(
-                            columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 6),
+                            columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: size.width < 600 ? 2 : 6),
                             spacing: 10
                         ) {
                             ForEach(visibleFoods) { food in
@@ -73,7 +90,7 @@ struct FoodLogView: View {
                 }
                 .zIndex(1)
                 .frame(maxWidth: .infinity)
-                .frame(height: max(160, size.height - 145), alignment: .top)
+                .frame(maxHeight: .infinity, alignment: .top)
                 .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
                 .overlay(alignment: .bottom) {
                     FoodSearchBar(text: $searchText)
@@ -81,7 +98,7 @@ struct FoodLogView: View {
                         .padding(.bottom, 12)
                 }
             }
-            .frame(height: max(280, size.height - 31), alignment: .top)
+            .frame(maxHeight: .infinity, alignment: .top)
         }
         .overlay(alignment: .bottom) {
             if let result = viewModel.lastResult {
@@ -98,6 +115,7 @@ struct FoodLogView: View {
                     .padding(.bottom, 18)
                 }
         }
+        .task { await viewModel.loadGuidance() }
         .sheet(item: $customFoodRequest) { _ in
             CustomFoodEntrySheet(viewModel: viewModel)
         }
@@ -172,7 +190,7 @@ private struct CustomFoodEntrySheet: View {
 }
 
 private enum FoodTab: String, CaseIterable, Identifiable {
-    case all = "ALL", fruits = "FRUITS", vegetables = "VEGES", meal = "MEAL", sweets = "SWEETS", other = "OTHER"
+    case all = "ALL", fruits = "FRUITS", vegetables = "VEGES", meal = "MEAL", other = "OTHER"
     var id: String { rawValue }
 }
 
@@ -233,7 +251,8 @@ private struct FoodLogHeader: View {
             Color.clear
                 .frame(width: 54, height: 54)
             }
-            HStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
                 ForEach(FoodTab.allCases) { tab in
                     Button(tab.rawValue) { selectedTab = tab }
                         .font(GameDesign.font(13, weight: .bold))
@@ -243,6 +262,7 @@ private struct FoodLogHeader: View {
                         .background(selectedTab == tab ? GameDesign.cream : GameDesign.cream.opacity(0.72))
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
+            }
             }
             .frame(maxWidth: .infinity)
         }

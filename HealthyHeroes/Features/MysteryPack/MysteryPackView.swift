@@ -3,6 +3,11 @@ import SwiftUI
 struct MysteryPackView: View {
     @State private var state: MysteryPackState = .closed
     @State private var errorMessage: String?
+    @State private var rewardIndex = 0
+    @State private var isSaving = false
+    @State private var isEquipped = false
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let rewardIDs: [RewardID]
     let openMysteryPackUseCase: any OpenMysteryPackUseCase
@@ -19,14 +24,14 @@ struct MysteryPackView: View {
             fallbackColor: Color.green.opacity(0.12)
         ) { size in
             GamePanel {
-                HStack(spacing: 24) {
-                    DesignImageView(assetID: imageAssetID, contentMode: .fit) {
+                (size.width < 600 ? AnyLayout(VStackLayout(spacing: 16)) : AnyLayout(HStackLayout(spacing: 24))) {
+                    DesignImageView(assetID: revealedReward?.assetID ?? imageAssetID, contentMode: .fit) {
                         Image(systemName: imageName)
                             .resizable()
                             .scaledToFit()
                             .foregroundStyle(.green)
                     }
-                    .frame(width: min(210, size.width * 0.26), height: min(210, size.height * 0.52))
+                    .frame(width: min(210, size.width * 0.60), height: min(210, size.height * 0.36))
 
                     VStack(alignment: .leading, spacing: 14) {
                         Text(title)
@@ -46,7 +51,7 @@ struct MysteryPackView: View {
                                 .buttonStyle(.borderedProminent)
                                 .controlSize(.large)
 
-                            if let reward = revealedReward, reward.type == .wardrobeItem {
+                            if let reward = revealedReward, reward.type == .wardrobeItem, !isEquipped {
                                 Button("Try On") {
                                     Task {
                                         await equipReward(reward)
@@ -65,13 +70,13 @@ struct MysteryPackView: View {
                     }
                     .frame(maxWidth: 420, alignment: .leading)
                 }
+                .disabled(isSaving)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: imageAssetID)
             }
-            .frame(maxWidth: min(760, size.width * 0.74), maxHeight: min(320, size.height * 0.72))
+            .frame(maxWidth: min(760, size.width), maxHeight: size.width < 600 ? min(560, size.height) : min(350, size.height))
         }
-        .onAppear {
-            if case .closed = state {
-                state = .opening(step: 0)
-            }
+        .task(id: rewardIndex) {
+            await loadCurrentReward()
         }
     }
 
@@ -134,13 +139,14 @@ struct MysteryPackView: View {
         case .closed, .opening:
             "Reveal"
         case .revealed:
-            "Finish"
+            rewardIndex + 1 < rewardIDs.count ? "Next reward" : "Finish"
         case .finished:
             "Close"
         }
     }
 
     private func advance() async {
+        guard !isSaving else { return }
         switch state {
         case .closed:
             state = .opening(step: 0)
@@ -148,37 +154,80 @@ struct MysteryPackView: View {
             if step < 1 {
                 state = .opening(step: step + 1)
             } else {
-                await revealFirstReward()
+                await revealReward()
             }
         case .revealed:
-            state = .finished
+            finishCurrentReward()
         case .finished:
-            router.dismissSheet()
+            dismiss()
         }
     }
 
-    private func revealFirstReward() async {
-        guard let rewardID = rewardIDs.first,
-              let reward = try? openMysteryPackUseCase.open(rewardID: rewardID) else {
+    private func finishCurrentReward() {
+        if rewardIndex + 1 < rewardIDs.count {
+            rewardIndex += 1
+            state = .closed
+            isEquipped = false
+            errorMessage = nil
+        } else {
             state = .finished
-            return
         }
+    }
 
-        if let profile = try? await markRewardOpenedUseCase.markOpened(rewardID: rewardID) {
+    private func revealReward() async {
+        guard rewardIDs.indices.contains(rewardIndex), !isSaving else { return }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            let rewardID = rewardIDs[rewardIndex]
+            guard let reward = try openMysteryPackUseCase.open(rewardID: rewardID) else {
+                errorMessage = "This reward could not be loaded. Please try again."
+                return
+            }
+            let profile = try await markRewardOpenedUseCase.markOpened(rewardID: rewardID)
+            isEquipped = profile.wardrobe.equippedItemIDs.contains(rewardID)
+            eventBus.post(.rewardOpened(rewardID))
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
+            errorMessage = nil
+            state = .revealed(reward)
+        } catch {
+            errorMessage = "Could not save this reward. Tap Reveal to try again."
         }
+    }
 
-        state = .revealed(reward)
+    private func loadCurrentReward() async {
+        guard rewardIDs.indices.contains(rewardIndex) else { return }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            let rewardID = rewardIDs[rewardIndex]
+            let profile = try await profileRepository.loadProfile()
+            isEquipped = profile?.wardrobe.equippedItemIDs.contains(rewardID) == true
+            if profile?.openedRewardIDs?.contains(rewardID) == true,
+               let reward = try openMysteryPackUseCase.open(rewardID: rewardID) {
+                state = .revealed(reward)
+            } else {
+                state = .closed
+            }
+            errorMessage = nil
+        } catch {
+            errorMessage = "Could not load this gift. Close and try again."
+        }
     }
 
     private func equipReward(_ reward: Reward) async {
+        guard !isSaving, !isEquipped else { return }
+        isSaving = true
+        defer { isSaving = false }
         do {
             let profile = try await equipItemUseCase.equip(itemID: reward.id)
+            isEquipped = true
+            eventBus.post(.rewardEquipped(reward.id))
             eventBus.post(.itemEquipped(reward.id))
             eventBus.post(.profileUpdated(profile))
             eventBus.post(.firstSessionProgressUpdated(profile.onboarding))
-            state = .finished
+            finishCurrentReward()
         } catch {
             errorMessage = "Could not try on this reward."
         }

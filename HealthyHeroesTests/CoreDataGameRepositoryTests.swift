@@ -3,6 +3,72 @@ import XCTest
 @testable import HealthyHeroes
 
 final class CoreDataGameRepositoryTests: XCTestCase {
+    func testFirstSessionLoopSurvivesFreshStoreConnection() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("game.sqlite")
+        let quest = makeQuest(id: "first", target: 1, rewardID: "wardrobe_leaf_cape")
+        let repository = try makeRepository(quests: [quest], storeURL: url)
+        try await repository.saveProfile(makeProfile(quests: [quest], selectedClass: .knight))
+        let logger = LogFoodUseCaseImpl(
+            gameStateRepository: repository,
+            gameConfigRepository: StaticGameConfigRepository(quests: [quest]),
+            progressEngine: ProgressEngine(), questEngine: QuestEngine(),
+            rewardEngine: RewardEngine(), mapEngine: MapEngine()
+        )
+        let result = try await logger.log(category: .fruit, customTitle: nil)
+        XCTAssertEqual(result.completedQuestIDs, ["first"])
+        let rewardID = try XCTUnwrap(result.unlockedRewardIDs.first)
+        _ = try await MarkRewardOpenedUseCaseImpl(gameStateRepository: repository).markOpened(rewardID: rewardID)
+        let equipped = try await EquipItemUseCaseImpl(profileRepository: repository).equip(itemID: rewardID)
+
+        let reopened = try makeRepository(quests: [quest], storeURL: url)
+        let restored = try await reopened.loadProfile()
+        XCTAssertEqual(restored, equipped)
+        XCTAssertTrue(restored?.onboarding.hasFinishedFirstSessionLoop == true)
+        XCTAssertTrue(restored?.onboarding.isFirstSessionCompleted == true)
+        XCTAssertEqual(restored?.openedRewardIDs, [rewardID])
+        XCTAssertEqual(restored?.wardrobe.equippedItemIDs, [rewardID])
+        XCTAssertEqual(restored?.progress, result.updatedProfile.progress)
+    }
+
+    func testSavingRestoredProfilePreservesOpenedGifts() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("game.sqlite")
+        let repository = try makeRepository(quests: [], storeURL: url)
+        var profile = makeProfile(quests: [])
+        profile.unlockedRewardIDs = ["wardrobe_leaf_cape", "sticker_star"]
+        profile.openedRewardIDs = ["sticker_star"]
+        try await repository.saveProfile(profile)
+        // A later legacy snapshot must not close gifts already opened in the store.
+        profile.openedRewardIDs = nil
+        try await repository.saveProfile(profile)
+        let restoredRepository = try makeRepository(quests: [], storeURL: url)
+        let restored = try await restoredRepository.loadProfile()
+        XCTAssertEqual(restored?.openedRewardIDs, ["sticker_star"])
+    }
+
+    func testOpenedGiftSurvivesFreshStoreConnectionAndLeavesOtherGiftUnopened() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("game.sqlite")
+        let repository = try makeRepository(quests: [], storeURL: url)
+        var profile = makeProfile(quests: [])
+        profile.unlockedRewardIDs = ["wardrobe_leaf_cape", "sticker_star"]
+        try await repository.saveProfile(profile)
+        let opener = MarkRewardOpenedUseCaseImpl(gameStateRepository: repository)
+        _ = try await opener.markOpened(rewardID: "wardrobe_leaf_cape")
+
+        let restoredRepository = try makeRepository(quests: [], storeURL: url)
+        let restored = try await restoredRepository.loadProfile()
+        XCTAssertEqual(restored?.openedRewardIDs, ["wardrobe_leaf_cape"])
+        XCTAssertEqual(Set(restored?.unlockedRewardIDs ?? []), Set(profile.unlockedRewardIDs))
+        let viewedAgain = try await MarkRewardOpenedUseCaseImpl(gameStateRepository: restoredRepository)
+            .markOpened(rewardID: "wardrobe_leaf_cape")
+        XCTAssertEqual(viewedAgain.openedRewardIDs, ["wardrobe_leaf_cape"])
+    }
+
     func testV1ModelKeepsRequiredUniqueIdentifiers() throws {
         let persistence = try CoreDataPersistenceController(inMemory: true)
         let model = persistence.container.managedObjectModel
@@ -133,8 +199,8 @@ final class CoreDataGameRepositoryTests: XCTestCase {
         XCTAssertTrue(try repository.hasCompletedLegacyImport())
     }
 
-    private func makeRepository(quests: [Quest]) throws -> CoreDataGameRepository {
-        let persistence = try CoreDataPersistenceController(inMemory: true)
+    private func makeRepository(quests: [Quest], storeURL: URL? = nil) throws -> CoreDataGameRepository {
+        let persistence = try CoreDataPersistenceController(storeURL: storeURL, inMemory: storeURL == nil)
         return CoreDataGameRepository(
             container: persistence.container,
             gameConfigRepository: StaticGameConfigRepository(quests: quests),

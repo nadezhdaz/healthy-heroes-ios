@@ -8,6 +8,7 @@ struct LogFoodResult: Equatable {
     let didAdvanceOnMap: Bool
     let smallProgressAwarded: Int
     let bigProgressAwarded: Int
+    let isFirstFoodLog: Bool
 }
 
 protocol CreateCharacterUseCase {
@@ -93,6 +94,7 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
         var profile = try await gameStateRepository.loadProfile()
             ?? ChildProfile.starter(quests: gameConfigRepository.starterQuests())
         let previousMapPosition = profile.progress.mapPosition
+        let isFirstFoodLog = !profile.onboarding.hasCompletedFirstFoodLog
 
         let entry = FoodLogEntry(
             id: idProvider(),
@@ -137,7 +139,8 @@ struct LogFoodUseCaseImpl: LogFoodUseCase {
             unlockedRewardIDs: rewardUpdate.unlockedRewardIDs,
             didAdvanceOnMap: profile.progress.mapPosition > previousMapPosition,
             smallProgressAwarded: smallProgress,
-            bigProgressAwarded: bigProgress
+            bigProgressAwarded: bigProgress,
+            isFirstFoodLog: isFirstFoodLog
         )
     }
 }
@@ -176,6 +179,9 @@ struct MarkRewardOpenedUseCaseImpl: MarkRewardOpenedUseCase {
         guard profile.unlockedRewardIDs.contains(rewardID) else {
             throw UseCaseError.rewardLocked
         }
+
+        guard profile.openedRewardIDs?.contains(rewardID) != true else { return profile }
+        profile.openedRewardIDs = (profile.openedRewardIDs ?? []) + [rewardID]
 
         profile.onboarding.hasOpenedFirstReward = true
         profile.onboarding.isFirstSessionCompleted = profile.onboarding.hasFinishedFirstSessionLoop

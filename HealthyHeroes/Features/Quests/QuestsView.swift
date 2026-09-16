@@ -1,10 +1,9 @@
-import Combine
 import SwiftUI
 
 struct QuestsView: View {
     @State private var quests: [Quest] = []
     @State private var selectedTab: QuestTab = .daily
-    @State private var cancellable: AnyCancellable?
+    @State private var errorMessage: String?
 
     let profileRepository: any ProfileRepository
     let eventBus: AppEventBus
@@ -24,7 +23,7 @@ struct QuestsView: View {
             backgroundAssetID: "quests_background",
             fallbackColor: GameDesign.purple,
             showsBackButton: true
-        ) { _ in
+        ) { size in
             VStack(spacing: 12) {
                 QuestHeader(selectedTab: $selectedTab)
                     .fixedSize(horizontal: false, vertical: true)
@@ -33,16 +32,25 @@ struct QuestsView: View {
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
                         .fill(GameDesign.cream.opacity(0.94))
 
-                    if visibleQuests.isEmpty {
+                    if let errorMessage {
+                        VStack(spacing: 16) {
+                            Text(errorMessage).multilineTextAlignment(.center)
+                            Button("Retry") { Task { await load() } }
+                                .buttonStyle(.borderedProminent)
+                                .frame(minHeight: 44)
+                        }
+                        .padding(24)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if visibleQuests.isEmpty {
                         GameEmptyStateView(
                             title: "No quests yet",
                             systemImage: "sparkles",
-                            message: "Complete healthy actions to unlock quests."
+                            message: "There are no quests in this section yet."
                         )
                     } else {
                         ScrollView {
                             LazyVGrid(
-                                columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)],
+                                columns: [GridItem(.adaptive(minimum: min(260, max(1, size.width - 56))), spacing: 16)],
                                 spacing: 16
                             ) {
                                 ForEach(visibleQuests) { quest in
@@ -60,23 +68,22 @@ struct QuestsView: View {
             }
         }
         .task { await load() }
-        .onAppear {
-            cancellable = eventBus.events.sink { event in
-                if case .profileUpdated = event {
-                    Task { @MainActor in
-                        await load()
-                    }
-                }
+        .onReceive(eventBus.events) { event in
+            if case let .profileUpdated(profile) = event {
+                quests = profile.quests
+                errorMessage = nil
             }
-        }
-        .onDisappear {
-            cancellable?.cancel()
         }
     }
 
     @MainActor
     private func load() async {
-        quests = (try? await profileRepository.loadProfile()?.quests) ?? []
+        do {
+            quests = try await profileRepository.loadProfile()?.quests ?? []
+            errorMessage = nil
+        } catch {
+            errorMessage = "Could not load your quests. Please try again."
+        }
     }
 }
 
@@ -101,7 +108,7 @@ private struct QuestHeader: View {
                     Button { selectedTab = tab } label: {
                         Text(tab.rawValue)
                             .font(GameDesign.font(16, weight: .bold))
-                            .foregroundStyle(tab == selectedTab ? GameDesign.green : .white)
+                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                             .background(tabColor(for: tab).opacity(tab == selectedTab ? 1 : 0.82))
@@ -109,6 +116,7 @@ private struct QuestHeader: View {
                             .shadow(color: .black.opacity(0.18), radius: 5, y: 3)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityAddTraits(tab == selectedTab ? .isSelected : [])
                 }
             }
         }
@@ -132,7 +140,7 @@ private struct QuestCard: View {
         case .logVegetable: "quest_icon_vegetable"
         case .logWater: "quest_icon_water"
         case .logHealthyMeal: "quest_icon_meal"
-        case .logAnyHealthyFood: "quest_icon_five_day"
+        case .logAnyHealthyFood: "quest_icon_meal"
         }
     }
 
@@ -152,12 +160,12 @@ private struct QuestCard: View {
                     .foregroundStyle(GameDesign.purple)
                     .lineLimit(2)
 
-                Text("\(quest.currentProgress)/\(quest.target)")
+                Text(quest.status == .active ? "\(quest.currentProgress)/\(quest.target)" : "Completed ✓")
                     .font(GameDesign.font(15, weight: .bold))
                     .foregroundStyle(.secondary)
 
                 ProgressView(value: Double(quest.currentProgress), total: Double(max(quest.target, 1)))
-                    .tint(quest.status == .completed ? .green : GameDesign.purple)
+                    .tint(quest.status != .active ? .green : GameDesign.purple)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)

@@ -5,6 +5,7 @@ final class AppDependencyContainer: ObservableObject {
     let router: AppRouter
     let eventBus: AppEventBus
     let assetResolver: AssetResolver
+    let analytics: AppAnalytics
 
     let gameStateRepository: any GameStateRepository
     let profileRepository: any ProfileRepository
@@ -30,6 +31,7 @@ final class AppDependencyContainer: ObservableObject {
         self.router = router
         self.eventBus = eventBus
         self.assetResolver = assetResolver
+        self.analytics = AppAnalytics(eventBus: eventBus)
         self.gameStateRepository = gameStateRepository
         self.profileRepository = gameStateRepository
         self.foodLogRepository = gameStateRepository

@@ -23,7 +23,9 @@ struct ClassSelectionView: View {
         ) { size in
             let cardHeight = max(92, min(132, size.height * 0.24))
 
-            HStack(spacing: 14) {
+            let portrait = size.width < 600
+            let layout = portrait ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(spacing: 14))
+            layout {
                 GamePanel {
                     VStack(spacing: 8) {
                         Text(selectedClass.title)
@@ -37,13 +39,14 @@ struct ClassSelectionView: View {
                         .padding(4)
                     }
                 }
-                .frame(width: min(270, size.width * 0.31))
+                .frame(width: portrait ? size.width : min(270, size.width * 0.31))
+                .frame(height: portrait ? min(180, size.height * 0.26) : nil)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("\(selectedClass.title) costume preview")
 
                 VStack(spacing: 10) {
                     ScrollView {
-                        LazyVGrid(columns: Self.gridColumns, spacing: 10) {
+                        LazyVGrid(columns: portrait ? Array(repeating: GridItem(.flexible(), spacing: 10), count: 2) : Self.gridColumns, spacing: 10) {
                             ForEach(CharacterClass.allCases) { characterClass in
                                 ClassCard(
                                     characterClass: characterClass,
@@ -61,13 +64,13 @@ struct ClassSelectionView: View {
                     }
                     .scrollIndicators(.hidden)
 
-                    HStack(spacing: 16) {
+                    (portrait ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 16))) {
                         Text("Knight and Princess are ready. More heroes unlock later.")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
 
-                        Spacer(minLength: 8)
+                        if !portrait { Spacer(minLength: 8) }
 
                         Button {
                             Task {
@@ -110,6 +113,7 @@ struct ClassSelectionView: View {
     private func confirm() async {
         do {
             let updatedProfile = try await selectStarterClassUseCase.select(selectedClass)
+            eventBus.post(.classSelected(selectedClass))
             eventBus.post(.profileUpdated(updatedProfile))
             eventBus.post(.firstSessionProgressUpdated(updatedProfile.onboarding))
             router.popToRoot()

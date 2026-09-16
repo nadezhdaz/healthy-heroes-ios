@@ -2,19 +2,19 @@
   {
     "assetID": "reward_leaf_cape",
     "id": "wardrobe_leaf_cape",
-    "title": "Leaf Cape",
+    "title": "Knight Helmet",
     "type": "wardrobeItem"
   },
   {
     "assetID": "reward_star_sticker",
     "id": "sticker_star",
-    "title": "Shiny Star Sticker",
+    "title": "Apple Sticker",
     "type": "sticker"
   },
   {
     "assetID": "reward_explorer_badge",
     "id": "class_explorer_badge",
-    "title": "Explorer Badge",
+    "title": "Fairy Badge",
     "type": "classUnlock"
   }
 ]

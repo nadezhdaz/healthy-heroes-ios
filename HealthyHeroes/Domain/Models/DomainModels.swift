@@ -14,6 +14,8 @@ struct ChildProfile: Codable, Equatable, Identifiable {
     var wardrobe: WardrobeState
     var stickers: StickerAlbumState
     var onboarding: OnboardingState
+    // Optional for compatibility with existing JSON profiles.
+    var openedRewardIDs: [RewardID]? = nil
 
     static func starter(quests: [Quest]) -> ChildProfile {
         ChildProfile(
@@ -444,9 +446,52 @@ struct ProgressConfig: Codable, Equatable {
 struct MapConfig: Codable, Equatable {
     var xpPerStep: Int
     var maxPosition: Int
+    var routeAnchors: [MapAnchor]
+
+    init(xpPerStep: Int, maxPosition: Int, routeAnchors: [MapAnchor] = MapAnchor.defaultRoute) {
+        self.xpPerStep = xpPerStep
+        self.maxPosition = maxPosition
+        self.routeAnchors = routeAnchors
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            xpPerStep: try container.decode(Int.self, forKey: .xpPerStep),
+            maxPosition: try container.decode(Int.self, forKey: .maxPosition),
+            routeAnchors: try container.decodeIfPresent([MapAnchor].self, forKey: .routeAnchors) ?? MapAnchor.defaultRoute
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey { case xpPerStep, maxPosition, routeAnchors }
+
+    func anchor(at position: Int) -> MapAnchor {
+        guard !routeAnchors.isEmpty else { return MapAnchor(x: 0.5, y: 0.5) }
+        return routeAnchors[min(max(position, 0), routeAnchors.count - 1)]
+    }
+}
+
+struct MapAnchor: Codable, Equatable {
+    let x: Double
+    let y: Double
+
+    static let defaultRoute: [MapAnchor] = [
+        // Canonical route in the five-column iPad map world; phones recompose it.
+        (0.158672, 0.100207), (0.331699, 0.100207), (0.504727, 0.100207), (0.677755, 0.100207), (0.850770, 0.101161),
+        (0.898664, 0.332835), (0.729128, 0.366736), (0.556100, 0.366736), (0.383073, 0.366736), (0.210045, 0.366736),
+        (0.072219, 0.5), (0.210045, 0.633264), (0.383073, 0.633264), (0.556100, 0.633264), (0.729128, 0.633264),
+        (0.898664, 0.667165), (0.850770, 0.898839), (0.677755, 0.899793), (0.504727, 0.899793), (0.331699, 0.899793),
+        (0.158672, 0.899793)
+    ].map { MapAnchor(x: $0.0, y: $0.1) }
+}
+
+enum WardrobeCategory: String, CaseIterable, Identifiable, Codable {
+    case head = "Head", top = "Top", legs = "Legs", feet = "Feet", accessories = "Accessories"
+    var id: String { rawValue }
 }
 
 struct WardrobeItemDefinition: Codable, Equatable, Identifiable {
+    var category: WardrobeCategory? = nil
     var id: WardrobeItemID
     var title: String
     var assetID: String
