@@ -51,9 +51,10 @@ struct FoodLogView: View {
                 }
 
                 ZStack(alignment: .bottom) {
-                    DesignImageView(assetID: "food_diary_field", contentMode: .fill) {
-                        RoundedRectangle(cornerRadius: 30)
-                            .fill(GameDesign.cream)
+                    Color.clear.background {
+                        DesignImageView(assetID: "food_diary_field", contentMode: .fill) {
+                            GameDesign.cream
+                        }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
 
@@ -72,7 +73,7 @@ struct FoodLogView: View {
                                         }
                                     }
                                 } label: {
-                                    FoodChoiceCard(choice: food)
+                                    FoodChoiceCard(choice: food, xp: viewModel.foodLogXP)
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(viewModel.isLogging)
@@ -273,6 +274,7 @@ private struct FoodLogHeader: View {
 
 private struct FoodChoiceCard: View {
     let choice: FoodChoice
+    let xp: Int?
 
     var body: some View {
         DesignImageView(assetID: choice.assetID, contentMode: .fit) {
@@ -288,6 +290,21 @@ private struct FoodChoiceCard: View {
             .background(GameDesign.cream)
         }
         .frame(maxWidth: .infinity, minHeight: 92)
+        .overlay(alignment: .bottom) {
+            VStack(spacing: 2) {
+                Text(choice.title)
+                    .font(.callout.weight(.bold))
+                if let xp {
+                    Text("+\(xp) XP")
+                        .font(.caption.weight(.semibold))
+                }
+            }
+            .foregroundStyle(GameDesign.green)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(GameDesign.cream)
+        }
         .background(GameDesign.cream)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.13), radius: 4, y: 2)

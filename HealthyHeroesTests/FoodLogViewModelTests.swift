@@ -3,6 +3,21 @@ import XCTest
 
 @MainActor
 final class FoodLogViewModelTests: XCTestCase {
+    func testDisplayedFoodXPMatchesAwardFromSameConfiguration() async {
+        let repository = InMemoryProfileRepository(profile: makeProfile(quests: []))
+        let config = StaticGameConfigRepository(progress: .init(smallFoodLogXP: 9, completedQuestXP: 25), quests: [])
+        let useCase = LogFoodUseCaseImpl(gameStateRepository: repository, gameConfigRepository: config,
+                                       progressEngine: ProgressEngine(), questEngine: QuestEngine(),
+                                       rewardEngine: RewardEngine(), mapEngine: MapEngine())
+        let model = FoodLogViewModel(logFoodUseCase: useCase, eventBus: AppEventBus(), router: AppRouter(),
+                                     profileRepository: repository, gameConfigRepository: config)
+        await model.loadGuidance()
+        XCTAssertEqual(model.foodLogXP, 9)
+        let saved = await model.log(.fruit)
+        XCTAssertTrue(saved)
+        XCTAssertEqual(model.lastResult?.smallProgressAwarded, model.foodLogXP)
+    }
+
     func testFirstFoodEventUsesCommittedProfileWithoutWaitingForGuidance() async {
         let repository = InMemoryProfileRepository(profile: makeProfile(quests: []))
         let useCase = LogFoodUseCaseImpl(

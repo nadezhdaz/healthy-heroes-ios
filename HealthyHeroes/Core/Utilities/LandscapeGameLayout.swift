@@ -67,7 +67,7 @@ struct LandscapeGameScreen<Content: View>: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                screenBackdrop
+                Color.clear.background { screenBackdrop }
 
                 if backgroundContentMode == .fit {
                     fittedBackground(in: proxy)

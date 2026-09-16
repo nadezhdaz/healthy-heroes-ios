@@ -69,12 +69,6 @@ final class MainViewModel: ObservableObject {
         if !onboarding.hasCompletedFirstQuest {
             return "Finish the first quest"
         }
-        if !onboarding.hasOpenedFirstReward {
-            return "Open the first reward"
-        }
-        if !onboarding.hasEquippedFirstItem {
-            return "Try on your reward"
-        }
         return nil
     }
 
@@ -143,10 +137,6 @@ final class MainViewModel: ObservableObject {
 
         if !onboarding.hasCompletedFirstFoodLog || !onboarding.hasCompletedFirstQuest {
             openFoodLog()
-        } else if !onboarding.hasOpenedFirstReward {
-            openRewards()
-        } else if !onboarding.hasEquippedFirstItem {
-            openWardrobe()
         }
     }
 

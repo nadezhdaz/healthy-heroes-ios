@@ -3,10 +3,13 @@ import Foundation
 @MainActor
 final class FoodLogViewModel: ObservableObject {
     @Published private(set) var showsFirstFoodTip = false
+    @Published private(set) var foodLogXP: Int?
+    private let gameConfigRepository: any GameConfigRepository
     private let profileRepository: (any ProfileRepository)?
 
     func loadGuidance() async {
         do {
+            foodLogXP = try gameConfigRepository.progressConfig().smallFoodLogXP
             let profile = try await profileRepository?.loadProfile()
             showsFirstFoodTip = profile.map { !$0.onboarding.hasCompletedFirstFoodLog } ?? false
         } catch {
@@ -29,9 +32,11 @@ final class FoodLogViewModel: ObservableObject {
         logFoodUseCase: any LogFoodUseCase,
         eventBus: AppEventBus,
         router: AppRouter,
-        profileRepository: (any ProfileRepository)? = nil
+        profileRepository: (any ProfileRepository)? = nil,
+        gameConfigRepository: any GameConfigRepository = BundledGameConfigRepository()
     ) {
         self.profileRepository = profileRepository
+        self.gameConfigRepository = gameConfigRepository
         self.logFoodUseCase = logFoodUseCase
         self.eventBus = eventBus
         self.router = router

@@ -87,7 +87,8 @@ private struct AppRootView: View {
                     logFoodUseCase: container.logFoodUseCase,
                     eventBus: container.eventBus,
                     router: container.router,
-                    profileRepository: container.profileRepository
+                    profileRepository: container.profileRepository,
+                    gameConfigRepository: container.gameConfigRepository
                 )
             )
         case .map:

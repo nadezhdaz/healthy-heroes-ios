@@ -10,8 +10,6 @@ final class PhoneFlowTests: XCTestCase {
             var profile = makeProfile(selectedClass: .knight)
             profile.onboarding.hasCompletedFirstFoodLog = completed
             profile.onboarding.hasCompletedFirstQuest = completed
-            profile.onboarding.hasOpenedFirstReward = completed
-            profile.onboarding.hasEquippedFirstItem = completed
             let repository = InMemoryProfileRepository(profile: profile)
             for size in [CGSize(width: 320, height: 568), CGSize(width: 1194, height: 834)] {
                 let model = MainViewModel(profileRepository: repository,
@@ -93,11 +91,17 @@ final class PhoneFlowTests: XCTestCase {
         XCTAssertEqual(router.path.last, .stickerAlbum)
 
         profile.onboarding.hasCompletedFirstFoodLog = true
+        try? await repository.saveProfile(profile)
+        await viewModel.load()
+        XCTAssertEqual(viewModel.firstSessionCTA, "Finish the first quest")
+
         profile.onboarding.hasCompletedFirstQuest = true
-        profile.onboarding.hasOpenedFirstReward = true
-        profile.onboarding.hasEquippedFirstItem = true
         try? await repository.saveProfile(profile)
         await viewModel.load()
         XCTAssertNil(viewModel.firstSessionCTA)
+        XCTAssertFalse(profile.onboarding.hasOpenedFirstReward)
+        XCTAssertFalse(profile.onboarding.hasEquippedFirstItem)
+        viewModel.followFirstSessionCTA()
+        XCTAssertEqual(router.path.last, .stickerAlbum)
     }
 }
