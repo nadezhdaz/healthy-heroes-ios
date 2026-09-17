@@ -201,6 +201,17 @@ struct AdaptiveMapScene: View {
                         DesignImageView(assetID: position == 14 ? "map_epic_marker" : "map_simple_marker", contentMode: .fit) { Image(systemName: "star.circle.fill") }
                             .frame(width: max(44, 269 * layout.scale), height: max(44, 269 * layout.scale))
                             .opacity(isCompleted || isCurrent ? 1 : 0.65)
+                            .overlay {
+                                if isCurrent {
+                                    Circle().strokeBorder(GameDesign.cream, lineWidth: 3)
+                                }
+                            }
+                            .overlay(alignment: .topTrailing) {
+                                Image(systemName: isCompleted ? "checkmark.circle.fill" : isCurrent ? "location.circle.fill" : "lock.circle.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(isCompleted ? GameDesign.green : GameDesign.purple)
+                                    .background(GameDesign.cream, in: Circle())
+                            }
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(GameImageButtonStyle())
@@ -211,6 +222,7 @@ struct AdaptiveMapScene: View {
                     .frame(width: max(44, 252 * layout.scale), height: max(50, 288 * layout.scale))
                     .modifier(MapRoutePosition(position: displayedPosition, maxPosition: config.maxPosition, layout: layout))
                     .animation(reduceMotion ? nil : .linear(duration: 1.2), value: displayedPosition)
+                    .allowsHitTesting(false)
                     .accessibilityLabel("Your hero, map step \(progress.mapPosition)")
             }
             .frame(width: proxy.size.width, height: proxy.size.height)

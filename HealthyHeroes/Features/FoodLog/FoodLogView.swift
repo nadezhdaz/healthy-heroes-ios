@@ -78,6 +78,7 @@ struct FoodLogView: View {
                                 .buttonStyle(.plain)
                                 .disabled(viewModel.isLogging)
                                 .accessibilityLabel(food.title)
+                                .accessibilityValue(viewModel.foodLogXP.map { "+\($0) XP" } ?? "")
                                 .accessibilityHint("Logs this food choice")
                             }
                         }

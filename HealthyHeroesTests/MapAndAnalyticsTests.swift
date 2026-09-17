@@ -10,8 +10,9 @@ final class MapAndAnalyticsTests: XCTestCase {
             XCTAssertNotNil(image, "Missing map asset: \(asset)")
         }
         for size in [CGSize(width: 393, height: 852), CGSize(width: 1194, height: 834), CGSize(width: 500, height: 400)] {
+            for position in [7, 14, 20] {
             let scene = AdaptiveMapScene(
-                progress: ProgressState(totalXP: 70, mapPosition: 7), displayedPosition: 7,
+                progress: ProgressState(totalXP: position * 10, mapPosition: position), displayedPosition: Double(position),
                 config: MapConfig(xpPerStep: 10, maxPosition: 20),
                 safeAreaInsets: EdgeInsets(top: 24, leading: 0, bottom: 20, trailing: 0),
                 selectedNode: .constant(nil)
@@ -31,9 +32,10 @@ final class MapAndAnalyticsTests: XCTestCase {
             window.isHidden = true
             XCTAssertEqual(image.size, size)
             let attachment = XCTAttachment(image: image)
-            attachment.name = "map-\(Int(size.width))x\(Int(size.height))"
+            attachment.name = "map-\(Int(size.width))x\(Int(size.height))-step-\(position)"
             attachment.lifetime = .keepAlways
             add(attachment)
+            }
         }
     }
 

@@ -85,6 +85,31 @@ final class LogFoodUseCaseTests: XCTestCase {
         XCTAssertTrue(profileRepository.savedProfiles.isEmpty)
     }
 
+    func testRewardOpeningCanRetryAfterFailedCommitWithoutLosingGift() async throws {
+        var profile = makeProfile()
+        profile.unlockedRewardIDs = ["wardrobe_leaf_cape"]
+        let repository = InMemoryProfileRepository(profile: profile)
+        let useCase = MarkRewardOpenedUseCaseImpl(gameStateRepository: repository)
+        let failure = NSError(domain: "reward-save", code: 1)
+        repository.commitError = failure
+        do {
+            _ = try await useCase.markOpened(rewardID: "wardrobe_leaf_cape")
+            XCTFail("Failed commit must not report an opened reward")
+        } catch {
+            XCTAssertEqual(error as NSError, failure)
+        }
+        XCTAssertEqual(repository.profile, profile)
+        XCTAssertTrue(repository.savedProfiles.isEmpty)
+
+        repository.commitError = nil
+        let opened = try await useCase.markOpened(rewardID: "wardrobe_leaf_cape")
+        XCTAssertEqual(opened.openedRewardIDs, ["wardrobe_leaf_cape"])
+        XCTAssertTrue(opened.onboarding.hasOpenedFirstReward)
+        let repeated = try await useCase.markOpened(rewardID: "wardrobe_leaf_cape")
+        XCTAssertEqual(repeated, opened)
+        XCTAssertEqual(repository.savedProfiles.count, 1)
+    }
+
     func testRewardOpeningMarksFirstRewardOpenedWithoutDuplicatingInventory() async throws {
         var profile = makeProfile()
         profile.unlockedRewardIDs = ["wardrobe_leaf_cape"]

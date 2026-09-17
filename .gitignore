@@ -62,4 +62,13 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 # Design sources are not tracked.
-/DesignSources/
+/DesignSources/*
+!/DesignSources/MAP/
+/DesignSources/MAP/*
+!/DesignSources/MAP/README.md
+!/DesignSources/MAP/adaptive-route-anchors.json
+
+!/DesignSources/MAP/phone-small.svg
+!/DesignSources/MAP/phone-modern.svg
+!/DesignSources/MAP/tablet-landscape.svg
+!/DesignSources/MAP/compact-window.svg
