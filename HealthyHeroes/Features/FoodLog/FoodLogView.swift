@@ -4,6 +4,7 @@ struct FoodLogView: View {
     @StateObject private var viewModel: FoodLogViewModel
     @State private var selectedTab: FoodTab = .all
     @State private var searchText = ""
+    @FocusState private var isSearchFocused: Bool
     @State private var customFoodRequest: CustomFoodRequest?
     @Environment(\.dismiss) private var dismiss
 
@@ -28,26 +29,35 @@ struct FoodLogView: View {
                 FoodLogHeader(
                     selectedTab: $selectedTab,
                     searchText: $searchText,
+                    showsTabs: !isSearchFocused,
                     onBack: { dismiss() }
                 )
                 .fixedSize(horizontal: false, vertical: true)
                 .zIndex(2)
 
-                if viewModel.showsFirstFoodTip {
+                if viewModel.showsFirstFoodTip && !isSearchFocused {
                     Text("Choose a fruit, vegetable, water or healthy meal. One tap helps your hero grow!")
                         .font(.callout)
                         .foregroundStyle(GameDesign.green)
                         .padding(10)
                         .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 12))
                 }
+                if !isSearchFocused {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))]) {
                     ForEach(viewModel.categories) { category in
-                        Button(category.title) { Task { await viewModel.log(category) } }
+                        Button {
+                            Task { await viewModel.log(category) }
+                        } label: {
+                            Text(category.title)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }
                             .buttonStyle(.borderedProminent)
                             .tint(GameDesign.green)
-                            .frame(minHeight: 44)
                             .disabled(viewModel.isLogging)
                     }
+                }
+
                 }
 
                 ZStack(alignment: .bottom) {
@@ -84,7 +94,7 @@ struct FoodLogView: View {
                         }
                         .padding(.horizontal, 28)
                         .padding(.top, 16)
-                        .padding(.bottom, 80)
+                        .padding(.bottom, 16)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .zIndex(1)
@@ -94,8 +104,8 @@ struct FoodLogView: View {
                 .frame(maxWidth: .infinity)
                 .frame(maxHeight: .infinity, alignment: .top)
                 .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                .overlay(alignment: .bottom) {
-                    FoodSearchBar(text: $searchText)
+                .safeAreaInset(edge: .bottom, spacing: 8) {
+                    FoodSearchBar(text: $searchText, isFocused: $isSearchFocused)
                         .padding(.horizontal, size.width * 0.18)
                         .padding(.bottom, 12)
                 }
@@ -228,6 +238,7 @@ private struct FoodChoice: Identifiable {
 private struct FoodLogHeader: View {
     @Binding var selectedTab: FoodTab
     @Binding var searchText: String
+    let showsTabs: Bool
     let onBack: () -> Void
 
     var body: some View {
@@ -253,20 +264,27 @@ private struct FoodLogHeader: View {
             Color.clear
                 .frame(width: 54, height: 54)
             }
+            if showsTabs {
             ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(FoodTab.allCases) { tab in
-                    Button(tab.rawValue) { selectedTab = tab }
-                        .font(GameDesign.font(13, weight: .bold))
-                        .foregroundStyle(GameDesign.green)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(selectedTab == tab ? GameDesign.cream : GameDesign.cream.opacity(0.72))
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    Button { selectedTab = tab } label: {
+                        Text(tab.rawValue)
+                            .font(GameDesign.font(13, weight: .bold))
+                            .foregroundStyle(GameDesign.green)
+                            .padding(.horizontal, 14)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .background(selectedTab == tab ? GameDesign.cream : GameDesign.cream.opacity(0.72))
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(selectedTab == tab ? .isSelected : [])
                 }
             }
             }
             .frame(maxWidth: .infinity)
+            }
         }
         .padding(.horizontal, 10)
         .padding(.bottom, 4)
@@ -314,6 +332,7 @@ private struct FoodChoiceCard: View {
 
 private struct FoodSearchBar: View {
     @Binding var text: String
+    var isFocused: FocusState<Bool>.Binding
 
     var body: some View {
         HStack(spacing: 10) {
@@ -321,6 +340,9 @@ private struct FoodSearchBar: View {
                 .font(.title3.bold())
                 .foregroundStyle(GameDesign.green)
             TextField("Search", text: $text)
+                .focused(isFocused)
+                .submitLabel(.search)
+                .onSubmit { isFocused.wrappedValue = false }
                 .font(GameDesign.font(15))
                 .textFieldStyle(.plain)
         }

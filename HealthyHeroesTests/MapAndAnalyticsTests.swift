@@ -198,4 +198,18 @@ final class MapAndAnalyticsTests: XCTestCase {
         XCTAssertEqual(analytics?.firstSessionEventNames, funnel)
         XCTAssertEqual(analytics!.eventNames.filter { $0 == "first_session_completed" }.count, 1)
     }
+    func testAnalyticsDeliveryPerformanceWithFullHistory() {
+        let suite = UserDefaults(suiteName: #function)!
+        suite.removePersistentDomain(forName: #function)
+        defer { suite.removePersistentDomain(forName: #function) }
+        let bus = AppEventBus()
+        let analytics = AppAnalytics(eventBus: bus, defaults: suite)
+        for _ in 0..<500 { bus.post(.appOpened) }
+        measure {
+            for _ in 0..<100 { bus.post(.playTapped) }
+        }
+        XCTAssertEqual(analytics.eventNames.count, 500)
+        XCTAssertEqual(analytics.eventNames.last, "play_tapped")
+    }
+
 }

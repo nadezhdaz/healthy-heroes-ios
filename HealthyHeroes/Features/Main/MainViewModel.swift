@@ -5,6 +5,7 @@ import Foundation
 final class MainViewModel: ObservableObject {
     @Published private(set) var profile: ChildProfile?
     @Published private(set) var errorMessage: String?
+    @Published private var mapConfig: MapConfig?
 
     private let profileRepository: any ProfileRepository
     private let gameConfigRepository: any GameConfigRepository
@@ -56,7 +57,9 @@ final class MainViewModel: ObservableObject {
     }
 
     var progressValue: Double {
-        min(Double(profile?.progress.totalXP ?? 0) / 100.0, 1.0)
+        guard let mapConfig, mapConfig.xpPerStep > 0, mapConfig.maxPosition > 0 else { return 0 }
+        let targetXP = Double(mapConfig.xpPerStep) * Double(mapConfig.maxPosition)
+        return min(max(Double(profile?.progress.totalXP ?? 0) / targetXP, 0), 1)
     }
 
     var firstSessionCTA: String? {
@@ -78,6 +81,7 @@ final class MainViewModel: ObservableObject {
 
     func load() async {
         do {
+            mapConfig = try gameConfigRepository.mapConfig()
             if let loadedProfile = try await profileRepository.loadProfile() {
                 profile = loadedProfile
             } else {

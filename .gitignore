@@ -72,3 +72,6 @@ fastlane/test_output
 !/DesignSources/MAP/phone-modern.svg
 !/DesignSources/MAP/tablet-landscape.svg
 !/DesignSources/MAP/compact-window.svg
+
+# App Store captures and export notes.
+!/DesignSources/AppStore/

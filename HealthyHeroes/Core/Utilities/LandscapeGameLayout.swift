@@ -173,7 +173,8 @@ struct LandscapeGameScreen<Content: View>: View {
     }
 
     private func verticalBottomPadding(for proxy: GeometryProxy) -> CGFloat {
-        max(10, proxy.safeAreaInsets.bottom + 4)
+        // GeometryReader already receives the keyboard-reduced safe-area height.
+        10
     }
 }
 
