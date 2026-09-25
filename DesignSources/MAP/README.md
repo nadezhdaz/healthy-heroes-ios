@@ -41,7 +41,7 @@ Hero movement follows cumulative route distance, including sampled turns, over 1
 - Product mapping for rewards at positions 14 and 20, and actual milestone grant behavior.
 - `node-states.svg` supplies an editable two-marker, three-state artwork sheet. Original marker PNGs remain independent image layers; opacity, ring, badges and labels are separate editable vectors. Badge paths illustrate the states; SwiftUI SF Symbols named above remain authoritative for the final glyphs. Figma import is optional (Figma is preferred in HEA-22, not mandatory).
 - Native opaque App Store map screenshots are supplied in `../AppStore/`; see its README for exact dimensions and capture provenance. All 25 named optional size presets are supplied in `../AppStore/canvases/` with a JSON index; they are blank placement templates, not screenshots.
-- Full target device/window matrix, both iPad landscape orientations, interrupted-animation runtime checks.
+- Resizable iPad-window runtime checks and interrupted-animation runtime checks. Full-screen Landscape Left and Landscape Right were visually checked on iPad Pro 13-inch (M5); native captures are in `../AppStore/ipad-13/`.
 
 Use @3x for iPhone and @2x for iPad output scale. Logical-point coordinates above must not be interpreted as screenshot pixels. Keep original source artwork at its native resolution.
 

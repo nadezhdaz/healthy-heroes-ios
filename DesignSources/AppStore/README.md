@@ -18,7 +18,7 @@ Captured on iPad Pro 13-inch (M5), iOS 26.5, in landscape orientation:
 - `ipad-13/start-2752x2064.jpg`: Start screen before creating a profile.
 - `ipad-13/map-2752x2064.jpg`: map at 30 XP / step 3 after the first food and quest.
 
-Both native JPEG captures were visually inspected; dimensions are 2752 × 2064 and alpha is absent, checked with `sips`. Neither image was resized or composited.
+Both original native JPEG captures were visually inspected; dimensions are 2752 × 2064 and alpha is absent, checked with `sips`. Neither image was resized or composited. On 25 September, `map-landscape-left-2752x2064.jpg` and `map-landscape-right-2752x2064.jpg` were captured after selecting each named Simulator orientation. The full route, hero, both reward nodes, Back and progress panel remain visible; both JPEGs are 2752 × 2064 with no alpha.
 
 ## Remaining
 
