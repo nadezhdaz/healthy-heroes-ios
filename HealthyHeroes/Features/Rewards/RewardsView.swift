@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RewardsView: View {
-    @State private var rewards: [Reward] = []
+    @State private var rewardCatalog: [Reward] = []
     @State private var profile: ChildProfile?
     @State private var entries: [FoodLogEntry] = []
     @State private var errorMessage: String?
@@ -11,6 +11,15 @@ struct RewardsView: View {
     let eventBus: AppEventBus
     let router: AppRouter
     let foodLogRepository: any FoodLogRepository
+
+    private var rewards: [Reward] {
+        let unlocked = Set(profile?.unlockedRewardIDs ?? [])
+        return rewardCatalog.filter { unlocked.contains($0.id) }
+    }
+
+    private var milestoneQuests: [Quest] {
+        profile?.quests.filter { $0.type == .milestone && $0.rewardID != nil } ?? []
+    }
 
     var body: some View {
         LandscapeGameScreen(title: "REWARDS", backgroundAssetID: "rewards_background", titleColor: GameDesign.purple) { _ in
@@ -52,6 +61,26 @@ struct RewardsView: View {
                             .buttonStyle(.plain)
                         }
                     }
+                    if !milestoneQuests.isEmpty {
+                        Text("Milestone rewards").font(.title2.bold())
+                        ForEach(milestoneQuests) { quest in
+                            let reward = rewardCatalog.first { $0.id == quest.rewardID }
+                            let unlocked = profile?.unlockedRewardIDs.contains(quest.rewardID ?? "") == true
+                            HStack(spacing: 12) {
+                                Image(systemName: unlocked ? "checkmark.seal.fill" : "lock.fill")
+                                    .foregroundStyle(unlocked ? GameDesign.green : GameDesign.purple)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(quest.title).font(.headline)
+                                    Text(reward?.title ?? "Reward unavailable").font(.subheadline)
+                                }
+                                Spacer()
+                                Text(unlocked ? "Unlocked" : "Locked").font(.caption.bold())
+                            }
+                            .padding(12)
+                            .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 12))
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
                     Text("Achievements").font(.title2.bold())
                     ForEach(profile?.quests.filter { $0.status != .active } ?? []) { quest in
                         Label(quest.title, systemImage: "checkmark.seal.fill")
@@ -83,8 +112,7 @@ struct RewardsView: View {
     private func load() async {
         do {
             profile = try await profileRepository.loadProfile()
-            let unlocked = Set(profile?.unlockedRewardIDs ?? [])
-            rewards = try rewardCatalogRepository.allRewards().filter { unlocked.contains($0.id) }
+            rewardCatalog = try rewardCatalogRepository.allRewards()
             entries = try await foodLogRepository.fetchEntries()
             errorMessage = nil
         } catch {

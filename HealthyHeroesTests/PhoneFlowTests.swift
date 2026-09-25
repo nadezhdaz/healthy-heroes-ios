@@ -54,6 +54,45 @@ final class PhoneFlowTests: XCTestCase {
         }
     }
 
+    func testRenderMilestoneRewardStatuses() async throws {
+        let sticker = Reward(id: "sticker_star", type: .sticker, title: "Apple Sticker", assetID: "reward_star_sticker")
+        let size = CGSize(width: 320, height: 568)
+        for unlocked in [false, true] {
+            var quest = makeQuest(id: "milestone", rewardID: sticker.id,
+                                  status: unlocked ? .rewarded : .active)
+            quest.type = .milestone
+            quest.title = "Choose fruit five times"
+            var profile = makeProfile(quests: [quest])
+            if unlocked {
+                profile.unlockedRewardIDs = [sticker.id]
+                profile.stickers.unlockedStickerIDs = [sticker.id]
+            }
+            let repository = InMemoryProfileRepository(profile: profile)
+            let view = RewardsView(profileRepository: repository,
+                                   rewardCatalogRepository: StaticRewardCatalogRepository(rewards: [sticker]),
+                                   eventBus: AppEventBus(), router: AppRouter(), foodLogRepository: repository)
+                .frame(width: size.width, height: size.height)
+            let controller = UIHostingController(rootView: view)
+            let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+            window.rootViewController = controller
+            window.makeKeyAndVisible()
+            controller.view.frame = CGRect(origin: .zero, size: size)
+            try await Task.sleep(for: .seconds(1))
+            controller.view.layoutIfNeeded()
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+                controller.view.drawHierarchy(in: CGRect(origin: .zero, size: size), afterScreenUpdates: true)
+            }
+            window.isHidden = true
+            XCTAssertEqual(image.size, size)
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "milestone-reward-\(unlocked ? "unlocked" : "locked")"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
     func testRewardCatalogMatchesWardrobeAndAlbum() throws {
         let loader = BundledConfigLoader()
         let rewards = try loader.decode([Reward].self, fileName: "rewards")
