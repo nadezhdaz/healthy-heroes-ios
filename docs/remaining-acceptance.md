@@ -2,9 +2,9 @@
 
 The full Linear objective remains open. Passing unit tests does not establish visual or end-to-end acceptance.
 
-## Current acceptance matrix — 18 September 2026
+## Current acceptance matrix — 25 September 2026
 
-This table supersedes historical “pending” statements below. Linear was reread on this date; In Review is not Done. Scope remains all project issues, including design deliverables. Phone portrait supersedes the earlier landscape-only design wording.
+This table supersedes historical “pending” statements below. Linear statuses were checked on 25 September; In Review is not Done. Scope remains all project issues, including design deliverables. Phone portrait supersedes the earlier landscape-only design wording.
 
 | Issue | Current Linear status | Evidence and next action |
 | --- | --- | --- |
@@ -12,13 +12,13 @@ This table supersedes historical “pending” statements below. Linear was rere
 | HEA-7/19 | In Review | Fresh iPhone/iPad first-session walkthroughs and persisted guidance checks recorded below. |
 | HEA-10 | In Review | Four simple category actions and immediate feedback implemented; custom entry, cancellation and restart/history verified alongside transaction tests. |
 | HEA-12 | In Review | Core progress/quest/reward criteria covered by runtime walkthroughs and domain/event tests, including failed commits and no repeat completion bonus. |
-| HEA-11 | Todo | Main gauge now follows map config; hero/navigation exercised. Finish navigation and appearance acceptance. |
+| HEA-11 | In Review | Fresh iPhone/iPad first-session CTA, stored progress and equipped hero verified; all primary main-screen routes and Settings placeholder navigated on iPhone SE. |
 | HEA-13 | Todo | Tile assembly, geometry/safe-area tests and runtime positions verified. Complete runtime interrupted movement and movement-after-update evidence. |
 | HEA-14 | In Review | Item and sticker reveal, Try On, persistence and retry/idempotency evidence recorded. |
-| HEA-15 | Todo | Equipped hero persists; category hit targets, panel placement and disabled-card contrast fixed locally. Complete locked/unlocked wardrobe acceptance. Same-category replacement is not an explicit issue acceptance criterion and the current catalog has one item. |
+| HEA-15 | In Review | Fresh iPhone: Knight Helmet Locked → quest reward Try On → Equipped in Wardrobe; main hero visibly changed and Equipped persisted after restart. Category controls and iPad layout checked. |
 | HEA-16/17 | In Review | Sticker locked/collected/restart states and automatic quest progress/completion verified. Milestones UI exists; bundled milestone definitions are absent. Do not invent their rewards. |
 | HEA-18 | In Progress | Catalog/history consistency verified, including Fairy Badge reveal and direct Wardrobe/Album navigation. Milestone reward scenario remains unverified because the bundled configuration has no milestone quests. |
-| HEA-20 | Todo | Producers, bounded history, durable funnel and simulator delivery cost tested. Verify the complete runtime funnel. |
+| HEA-20 | In Review | All ten first-session events persisted in order on the iPad simulator; later launches appended only app_opened. Bounded history, relaunch durability and simulator delivery cost tested. |
 | HEA-21 | Todo | Separate bundled scenery/logo/Play and static launch storyboard exist; native Start screenshots supplied. Start/launch layered SVGs, pressed-state SVG, placement/scale notes and 25 named canvas presets now exist. Structural checks pass; full-frame visual review and maximum-scale source resolution remain open. |
 | HEA-22 | Todo | Editable layered SVG references, 21 anchors (start + 20 steps), native map screenshots and state/motion specifications supplied. Still needs state artwork sheet and remaining orientation/window runtime checks; 25 named size presets now exist. Figma is preferred, not mandatory; importing/review by a designer is not a substitute completion gate. |
 | HEA-5 | Todo | Epic remains open while child requirements and design deliverables remain incomplete. |
