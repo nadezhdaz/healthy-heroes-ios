@@ -75,3 +75,6 @@ fastlane/test_output
 
 # App Store captures and export notes.
 !/DesignSources/AppStore/
+
+# Editable Start and launch compositions.
+!/DesignSources/Start/

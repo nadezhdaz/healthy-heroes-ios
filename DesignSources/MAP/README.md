@@ -39,8 +39,8 @@ Hero movement follows cumulative route distance, including sampled turns, over 1
 ## Still outstanding
 
 - Product mapping for rewards at positions 14 and 20, and actual milestone grant behavior.
-- Final designer review/import of the editable SVG compositions; Figma-native master and node-state art sheets remain outstanding.
-- Exact App Store screenshot exports without alpha; none are claimed by these coordinate tables.
+- Node-state art sheets remain outstanding. Editable layered SVG compositions are supplied; Figma import is optional (Figma is preferred in HEA-22, not mandatory).
+- Native opaque App Store map screenshots are supplied in `../AppStore/`; see its README for exact dimensions and capture provenance. All 25 named optional size presets are supplied in `../AppStore/canvases/` with a JSON index; they are blank placement templates, not screenshots.
 - Full target device/window matrix, both iPad landscape orientations, interrupted-animation runtime checks.
 
 Use @3x for iPhone and @2x for iPad output scale. Logical-point coordinates above must not be interpreted as screenshot pixels. Keep original source artwork at its native resolution.

@@ -1,3 +1,4 @@
+import Combine
 import XCTest
 @testable import HealthyHeroes
 
@@ -64,6 +65,47 @@ final class FoodLogViewModelTests: XCTestCase {
         await viewModel.log(.fruit)
         XCTAssertNil(viewModel.lastResult)
         XCTAssertEqual(viewModel.errorMessage, "Could not log this choice. Please try again.")
+    }
+
+    func testQuestRewardEventsFollowSuccessfulCommitAndDoNotRepeat() async {
+        let quest = makeQuest(id: "first", target: 1, rewardID: "wardrobe_leaf_cape")
+        let repository = InMemoryProfileRepository(profile: makeProfile(quests: [quest]))
+        let useCase = LogFoodUseCaseImpl(
+            gameStateRepository: repository, gameConfigRepository: StaticGameConfigRepository(quests: [quest]),
+            progressEngine: ProgressEngine(), questEngine: QuestEngine(),
+            rewardEngine: RewardEngine(), mapEngine: MapEngine()
+        )
+        let bus = AppEventBus()
+        let router = AppRouter()
+        let model = FoodLogViewModel(logFoodUseCase: useCase, eventBus: bus, router: router)
+        var completions: [[QuestID]] = []
+        var rewards: [[RewardID]] = []
+        let subscription = bus.events.sink { event in
+            switch event {
+            case let .questCompleted(ids): completions.append(ids)
+            case let .rewardsUnlocked(ids):
+                XCTAssertEqual(repository.entries.count, 1)
+                XCTAssertEqual(repository.profile?.unlockedRewardIDs, ids)
+                rewards.append(ids)
+            default: break
+            }
+        }
+        defer { subscription.cancel() }
+        repository.commitError = NSError(domain: "test", code: 1)
+        _ = await model.log(.fruit)
+        XCTAssertTrue(completions.isEmpty && rewards.isEmpty)
+        XCTAssertNil(router.sheet)
+        repository.commitError = nil
+        _ = await model.log(.fruit)
+        XCTAssertEqual(repository.profile?.progress.totalXP, 30)
+        XCTAssertEqual(router.sheet, .mysteryPack(["wardrobe_leaf_cape"]))
+        router.dismissSheet()
+        _ = await model.log(.fruit)
+        XCTAssertEqual(repository.profile?.progress.totalXP, 35)
+        XCTAssertEqual(repository.entries.count, 2)
+        XCTAssertEqual(completions, [["first"]])
+        XCTAssertEqual(rewards, [["wardrobe_leaf_cape"]])
+        XCTAssertNil(router.sheet)
     }
 
     private func makeLogFoodResult() -> LogFoodResult {

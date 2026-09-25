@@ -21,7 +21,7 @@ struct WardrobeView: View {
                     equippedItemIDs: profile?.wardrobe.equippedItemIDs ?? [],
                     selectedClass: profile?.character.selectedClass
                 )
-                .frame(width: portrait ? size.width : min(300, size.width * 0.36))
+                .frame(width: portrait ? size.width : size.width * 0.42)
                 .frame(height: portrait ? min(230, size.height * 0.35) : nil)
                 .accessibilityLabel("Your equipped hero")
 
@@ -29,10 +29,14 @@ struct WardrobeView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
                             ForEach(WardrobeCategory.allCases) { category in
-                                Button(category.rawValue) { selectedCategory = category }
+                                Button { selectedCategory = category } label: {
+                                    Text(category.rawValue)
+                                        .frame(minWidth: 44, minHeight: 44)
+                                        .contentShape(Rectangle())
+                                }
                                     .buttonStyle(.borderedProminent)
                                     .tint(category == selectedCategory ? GameDesign.green : .gray)
-                                    .frame(minHeight: 44)
+                                    .accessibilityAddTraits(category == selectedCategory ? .isSelected : [])
                             }
                         }
                     }
@@ -82,7 +86,7 @@ struct WardrobeView: View {
             .frame(maxWidth: .infinity, minHeight: 170)
             .background(GameDesign.cream, in: RoundedRectangle(cornerRadius: 20))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GameImageButtonStyle())
         .disabled(!unlocked || equipped || isEquipping)
         .accessibilityElement(children: .combine)
     }

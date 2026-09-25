@@ -1,0 +1,177 @@
+[
+  {
+    "name": "iphone-1320x2868",
+    "width": 1320,
+    "height": 2868,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1320x2868.svg"
+  },
+  {
+    "name": "iphone-1290x2796",
+    "width": 1290,
+    "height": 2796,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1290x2796.svg"
+  },
+  {
+    "name": "iphone-1260x2736",
+    "width": 1260,
+    "height": 2736,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1260x2736.svg"
+  },
+  {
+    "name": "iphone-1206x2622",
+    "width": 1206,
+    "height": 2622,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1206x2622.svg"
+  },
+  {
+    "name": "iphone-1179x2556",
+    "width": 1179,
+    "height": 2556,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1179x2556.svg"
+  },
+  {
+    "name": "iphone-1284x2778",
+    "width": 1284,
+    "height": 2778,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1284x2778.svg"
+  },
+  {
+    "name": "iphone-1242x2688",
+    "width": 1242,
+    "height": 2688,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1242x2688.svg"
+  },
+  {
+    "name": "iphone-1170x2532",
+    "width": 1170,
+    "height": 2532,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1170x2532.svg"
+  },
+  {
+    "name": "iphone-1125x2436",
+    "width": 1125,
+    "height": 2436,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1125x2436.svg"
+  },
+  {
+    "name": "iphone-1080x2340",
+    "width": 1080,
+    "height": 2340,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1080x2340.svg"
+  },
+  {
+    "name": "iphone-1242x2208",
+    "width": 1242,
+    "height": 2208,
+    "orientation": "portrait",
+    "template": "canvases/iphone-1242x2208.svg"
+  },
+  {
+    "name": "iphone-750x1334",
+    "width": 750,
+    "height": 1334,
+    "orientation": "portrait",
+    "template": "canvases/iphone-750x1334.svg"
+  },
+  {
+    "name": "iphone-640x1136",
+    "width": 640,
+    "height": 1136,
+    "orientation": "portrait",
+    "template": "canvases/iphone-640x1136.svg"
+  },
+  {
+    "name": "iphone-600x1136",
+    "width": 600,
+    "height": 1136,
+    "orientation": "portrait",
+    "template": "canvases/iphone-600x1136.svg"
+  },
+  {
+    "name": "ipad-2752x2064",
+    "width": 2752,
+    "height": 2064,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2752x2064.svg"
+  },
+  {
+    "name": "ipad-2732x2048",
+    "width": 2732,
+    "height": 2048,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2732x2048.svg"
+  },
+  {
+    "name": "ipad-2266x1488",
+    "width": 2266,
+    "height": 1488,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2266x1488.svg"
+  },
+  {
+    "name": "ipad-2420x1668",
+    "width": 2420,
+    "height": 1668,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2420x1668.svg"
+  },
+  {
+    "name": "ipad-2388x1668",
+    "width": 2388,
+    "height": 1668,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2388x1668.svg"
+  },
+  {
+    "name": "ipad-2360x1640",
+    "width": 2360,
+    "height": 1640,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2360x1640.svg"
+  },
+  {
+    "name": "ipad-2224x1668",
+    "width": 2224,
+    "height": 1668,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2224x1668.svg"
+  },
+  {
+    "name": "ipad-2048x1536",
+    "width": 2048,
+    "height": 1536,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2048x1536.svg"
+  },
+  {
+    "name": "ipad-2048x1496",
+    "width": 2048,
+    "height": 1496,
+    "orientation": "landscape",
+    "template": "canvases/ipad-2048x1496.svg"
+  },
+  {
+    "name": "ipad-1024x768",
+    "width": 1024,
+    "height": 768,
+    "orientation": "landscape",
+    "template": "canvases/ipad-1024x768.svg"
+  },
+  {
+    "name": "ipad-1024x748",
+    "width": 1024,
+    "height": 748,
+    "orientation": "landscape",
+    "template": "canvases/ipad-1024x748.svg"
+  }
+]

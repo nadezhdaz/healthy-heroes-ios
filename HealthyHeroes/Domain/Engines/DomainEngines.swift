@@ -52,12 +52,12 @@ struct RewardEngine {
     func unlockRewards(for completedQuestIDs: [QuestID], in profile: ChildProfile) -> RewardUnlockResult {
         var profile = profile
         let completedQuestSet = Set(completedQuestIDs)
-        let existingRewardIDs = Set(profile.unlockedRewardIDs)
+        var seenRewardIDs = Set(profile.unlockedRewardIDs)
 
         let newRewardIDs = profile.quests
             .filter { completedQuestSet.contains($0.id) }
             .compactMap(\.rewardID)
-            .filter { !existingRewardIDs.contains($0) }
+            .filter { seenRewardIDs.insert($0).inserted }
 
         guard !newRewardIDs.isEmpty else {
             return RewardUnlockResult(profile: profile, unlockedRewardIDs: [])

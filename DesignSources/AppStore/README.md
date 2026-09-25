@@ -22,4 +22,4 @@ Both native JPEG captures were visually inspected; dimensions are 2752 × 2064 a
 
 ## Remaining
 
-Remaining first-entry captures and optional canvas presets remain outstanding. These files are partial capture deliverables, not evidence that HEA-21/22 or the complete app are accepted. No App Store upload has been performed. Recapture after visible UI changes before submission.
+The 25 named canvas presets are now supplied in `canvas-presets.json` and `canvases/`. iPhone dimensions are portrait under the later Telegram decision; iPad dimensions remain landscape. These blank, opaque-base SVG templates are editable placement canvases, not submission images. Export JPEG or flatten PNG alpha and verify the resulting dimensions. Some smaller presets are legacy target sizes from the issue, not a claim that Apple currently accepts each as a separate submission set. These files are partial capture deliverables, not evidence that HEA-21/22 or the complete app are accepted. No App Store upload has been performed. Recapture after visible UI changes before submission.
