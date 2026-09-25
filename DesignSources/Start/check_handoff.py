@@ -2,6 +2,7 @@
 from pathlib import Path
 import base64
 import json
+import struct
 import xml.etree.ElementTree as ET
 
 root = Path(__file__).resolve().parents[2]
@@ -18,14 +19,19 @@ for preset in presets:
     assert background.attrib["height"] == svg.attrib["height"]
 
 files = list(Path(__file__).parent.glob("*.svg"))
-assert len(files) == 7
+assert len(files) == 8
 for path in files:
     svg = ET.parse(path).getroot()
     for image in svg.findall(".//s:image", ns):
         href = image.attrib["href"]
         assert href.startswith("data:image/png;base64,")
         assert base64.b64decode(href.split(",", 1)[1], validate=True).startswith(b"\x89PNG\r\n\x1a\n")
-    if path.stem == "play-pressed":
+    if path.stem in {"play-pressed", "play-figma-source"}:
+        assert svg.find(".//s:path", ns) is not None
+        assert svg.find(".//s:image", ns) is None
+        assert [int(svg.attrib[a]) for a in ("width", "height")] == (
+            [421, 406] if path.stem == "play-pressed" else [476, 476]
+        )
         continue
     guide = svg.find("s:g[@id='safe-area-guides']/s:rect", ns)
     top, height = float(guide.attrib["y"]), float(guide.attrib["height"])
@@ -40,4 +46,8 @@ for path in files:
         assert y >= top and y + h <= top + height
         if name == "play-normal":
             assert min(w, h) >= 44
-print("Validated 25 canvases and 7 Start/launch compositions.")
+play_png = (root / "HealthyHeroes/Resources/Design/Start/Start-play.png").read_bytes()
+assert play_png.startswith(b"\x89PNG\r\n\x1a\n")
+width, height = struct.unpack(">II", play_png[16:24])
+assert width >= 450 and height >= 450 and play_png[25] == 6
+print("Validated 25 canvases, 6 Start/launch compositions and 2 vector Play states.")

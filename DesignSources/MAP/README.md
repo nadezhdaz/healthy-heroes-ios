@@ -36,10 +36,10 @@ Upcoming: artwork opacity 0.65 with a lock badge. Current: full opacity, cream r
 
 Hero movement follows cumulative route distance, including sampled turns, over 1.2 seconds. The last viewed position is stored after completed playback; cancellation preserves the last completed position for replay.
 
-## Still outstanding
+## Handoff status and remaining checks
 
 - Product mapping for rewards at positions 14 and 20, and actual milestone grant behavior.
-- Node-state art sheets remain outstanding. Editable layered SVG compositions are supplied; Figma import is optional (Figma is preferred in HEA-22, not mandatory).
+- `node-states.svg` supplies an editable two-marker, three-state artwork sheet. Original marker PNGs remain independent image layers; opacity, ring, badges and labels are separate editable vectors. Badge paths illustrate the states; SwiftUI SF Symbols named above remain authoritative for the final glyphs. Figma import is optional (Figma is preferred in HEA-22, not mandatory).
 - Native opaque App Store map screenshots are supplied in `../AppStore/`; see its README for exact dimensions and capture provenance. All 25 named optional size presets are supplied in `../AppStore/canvases/` with a JSON index; they are blank placement templates, not screenshots.
 - Full target device/window matrix, both iPad landscape orientations, interrupted-animation runtime checks.
 
