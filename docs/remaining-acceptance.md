@@ -13,7 +13,7 @@ This table supersedes historical “pending” statements below. Linear statuses
 | HEA-10 | In Review | Four simple category actions and immediate feedback implemented; custom entry, cancellation and restart/history verified alongside transaction tests. |
 | HEA-12 | In Review | Core progress/quest/reward criteria covered by runtime walkthroughs and domain/event tests, including failed commits and no repeat completion bonus. |
 | HEA-11 | In Review | Fresh iPhone/iPad first-session CTA, stored progress and equipped hero verified; all primary main-screen routes and Settings placeholder navigated on iPhone SE. |
-| HEA-13 | Todo | Tile assembly, geometry/safe-area tests and runtime positions verified. Complete runtime interrupted movement and movement-after-update evidence. |
+| HEA-13 | In Review | Individual tile assembly and 30-size geometry matrix pass; video captures food/quest movement from step 3 to 6, with cancellation and Reduce Motion tested. iPad window checks remain in HEA-22. |
 | HEA-14 | In Review | Item and sticker reveal, Try On, persistence and retry/idempotency evidence recorded. |
 | HEA-15 | In Review | Fresh iPhone: Knight Helmet Locked → quest reward Try On → Equipped in Wardrobe; main hero visibly changed and Equipped persisted after restart. Category controls and iPad layout checked. |
 | HEA-16/17 | In Review | Sticker locked/collected/restart states and automatic quest progress/completion verified. Milestones UI exists; bundled milestone definitions are absent. Do not invent their rewards. |
