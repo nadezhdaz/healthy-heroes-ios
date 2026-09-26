@@ -8,11 +8,12 @@ The later Telegram decision applies: iPhone portrait, iPad landscape. These edit
 | --- | --- | --- |
 | phone-small | 320 × 568 pt | 20 / 0 pt |
 | phone-modern | 393 × 852 pt | 59 / 34 pt |
+| phone-large | 440 × 956 pt | 62 / 34 pt |
 | tablet-landscape | 1376 × 1032 pt | 24 / 20 pt |
 
 Each has a matching `-launch.svg` with only the sky color and logo, mirroring `HealthyHeroes/Resources/LaunchScreen.storyboard`. No Play control appears on the static launch composition. The `safe-area-guides` layer is hidden by default; change its display property to show it. Safe insets are reference inputs, not universal device constants.
 
-Logo is centered in the safe width, 24 pt below its top. Its layout box is min(440 pt, 82% of width) by min(200 pt, 25% of safe height), preserving artwork aspect ratio. Play is centered above the tagline: min(150 pt, 30% of width) by min(150 pt, 23% of safe height), minimum runtime target 44 × 44 pt. Runtime uses flexible vertical space; SVG tagline metrics approximate native text and can vary with installed fonts. Keep the native StartView authoritative for runtime layout.
+Logo is centered in the safe width, 24 pt below its top. Its runtime layout box is min(440 pt, 997 / displayScale pt, 82% of width) by min(200 pt, 25% of safe height), preserving artwork aspect ratio. This caps the @3x phone logo at 332⅓ points; the storyboard uses 332 points in compact width and 440 points in regular width. Play is centered above the tagline: min(150 pt, 30% of width) by min(150 pt, 23% of safe height), minimum runtime target 44 × 44 pt. Runtime uses flexible vertical space; SVG tagline metrics approximate native text and can vary with installed fonts. Keep the native StartView authoritative for runtime layout.
 
 ## Separate source assets
 
@@ -25,13 +26,13 @@ Existing exports are in `../../HealthyHeroes/Resources/Design/`:
 - `play-figma-source.svg`: original scalable Play export from [Figma node 5:124](https://www.figma.com/design/8EOrGXfqa08zOuegezFC2y/HH-project-ui-sketch?node-id=5-124), including its shadow and filters.
 - `play-pressed.svg`: transparent vector state in the same 421 × 406 design box, derived from that source, centered at 92% scale and darkened by 0.08. Runtime animates over 0.12 s; Reduce Motion disables interpolation.
 
-Use @3x for iPhone and @2x for iPad. The vector-derived Play export exceeds its 450-pixel @3x maximum display size. The 997-pixel logo remains insufficient for a 440-point @3x box; obtain a larger matching original for pixel-perfect maximum-size exports. Background scenery can also require scaling at the largest output dimensions.
+Use @3x for iPhone and @2x for iPad. The vector-derived Play export exceeds its 450-pixel @3x maximum display size. The runtime logo fits within its 997 source pixels at both densities; a larger matching original is unnecessary for these capped placements. Background scenery can still require scaling at the largest output dimensions.
 
 ## Export and verification
 
 `../AppStore/canvases/` contains 25 named exact-size SVG canvases listed in `../AppStore/canvas-presets.json`. These are blank placement templates with an opaque white base, not submission screenshots. Place actual app captures in the named content group. Export JPEG (which has no alpha), or explicitly flatten PNG alpha; check output dimensions and alpha before submission. Do not submit SVG files or blank templates.
 
-Run `python3 DesignSources/Start/check_handoff.py` from the repository root. It checks every canvas dimension, unique names, opaque base, SVG integrity, embedded image references, launch composition and logo/Play safe-area boxes. This is structural validation, not a full-device visual test. Full-frame SVG renders were inspected at 320 × 568, 393 × 852 and 1376 × 1032 points on 25 September. Logo, Play and tagline are visible in each, and the static launch compositions omit Play. The iPad scenery itself has characters extending past its bottom edge in the supplied original, as the native capture also shows. Native Start screenshots exist in `../AppStore/`.
+Run `python3 DesignSources/Start/check_handoff.py` from the repository root. It checks every canvas dimension, unique names, opaque base, SVG integrity, embedded image references, launch composition, logo/Play safe-area boxes and source resolution at @3x phone / @2x iPad density. The eight Start/launch compositions pass. This is structural validation, not a full-device visual test. Full-frame SVG renders were inspected at 320 × 568, 393 × 852 and 1376 × 1032 points on 25 September. Logo, Play and tagline are visible in each, and the static launch compositions omit Play. The capped logo was also visually checked on a fresh iPhone 17 Pro Max / iOS 26.5 profile on 26 September; its native capture replaces `../AppStore/iphone-6.9/start-1320x2868.jpg`. The supplied iPad scenery already cuts off the Princess's lower dress at its bottom edge, as the native capture also shows; the complete character artwork remains an input gap.
 
 ## Original-source audit — 19 September 2026
 

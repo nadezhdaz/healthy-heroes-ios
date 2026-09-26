@@ -17,7 +17,9 @@
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" image="Start-logo.png" translatesAutoresizingMaskIntoConstraints="NO" id="launch-logo">
                                 <rect key="frame" x="35" y="83" width="323" height="190"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" relation="lessThanOrEqual" constant="440" id="logo-max-width"/>
+                                    <constraint firstAttribute="width" relation="lessThanOrEqual" constant="332" id="logo-max-width">
+                                        <variation key="widthClass=regular" constant="440"/>
+                                    </constraint>
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="200" id="logo-max-height"/>
                                 </constraints>
                             </imageView>

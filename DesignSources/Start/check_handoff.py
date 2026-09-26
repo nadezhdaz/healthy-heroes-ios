@@ -19,7 +19,7 @@ for preset in presets:
     assert background.attrib["height"] == svg.attrib["height"]
 
 files = list(Path(__file__).parent.glob("*.svg"))
-assert len(files) == 8
+assert len(files) == 10
 for path in files:
     svg = ET.parse(path).getroot()
     for image in svg.findall(".//s:image", ns):
@@ -44,10 +44,14 @@ for path in files:
         x, y, w, h = (float(image.attrib[k]) for k in ("x", "y", "width", "height"))
         assert x >= 0 and x + w <= float(svg.attrib["width"])
         assert y >= top and y + h <= top + height
+        source = base64.b64decode(image.attrib['href'].split(',', 1)[1])
+        source_width, source_height = struct.unpack('>II', source[16:24])
+        display_scale = 3 if path.stem.startswith('phone-') else 2
+        assert min(w / source_width, h / source_height) * display_scale <= 1.000001, f'{path.name}: {name} is upscaled'
         if name == "play-normal":
             assert min(w, h) >= 44
 play_png = (root / "HealthyHeroes/Resources/Design/Start/Start-play.png").read_bytes()
 assert play_png.startswith(b"\x89PNG\r\n\x1a\n")
 width, height = struct.unpack(">II", play_png[16:24])
 assert width >= 450 and height >= 450 and play_png[25] == 6
-print("Validated 25 canvases, 6 Start/launch compositions and 2 vector Play states.")
+print("Validated 25 canvases, 8 Start/launch compositions, native asset resolution and 2 vector Play states.")

@@ -9,7 +9,7 @@ Captured from Healthy Heroes commit 6ce2713 (main screen recaptured with the sub
 
 Both files were visually inspected and checked with `sips`: 1320 × 2868 pixels, no alpha. This portrait dimension is accepted for the 6.9-inch iPhone set in [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications), checked on the capture date. iPhone portrait follows the later Telegram decision.
 
-The iPhone Start capture `iphone-6.9/start-1320x2868.jpg` was taken on iPhone 17 Pro Max / iOS 27 with a fresh profile. Logo, Play and tagline were visually checked. Native JPEG, 1320 × 2868, no alpha.
+The iPhone Start capture `iphone-6.9/start-1320x2868.jpg` was recaptured on 26 September on iPhone 17 Pro Max / iOS 26.5 with a fresh profile after capping the logo to its source pixel width. Logo, Play and tagline were visually checked. Native JPEG, 1320 × 2868, no alpha.
 
 ## iPad 13-inch
 

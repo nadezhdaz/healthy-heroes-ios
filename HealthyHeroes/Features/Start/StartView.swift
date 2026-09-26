@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StartView: View {
+    @Environment(\.displayScale) private var displayScale
     let router: AppRouter
     let eventBus: AppEventBus
 
@@ -11,7 +12,7 @@ struct StartView: View {
                 DesignImageView(assetID: "start_wordmark", contentMode: .fit) {
                     Text("Healthy Heroes").font(.largeTitle.bold())
                 }
-                .frame(maxWidth: min(440, proxy.size.width * 0.82))
+                .frame(maxWidth: min(440, 997 / displayScale, proxy.size.width * 0.82))
                 .frame(height: min(200, proxy.size.height * 0.25))
                 .accessibilityLabel("Healthy Heroes")
 

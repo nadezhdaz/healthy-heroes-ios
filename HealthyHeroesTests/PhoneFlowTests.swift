@@ -51,6 +51,9 @@ final class PhoneFlowTests: XCTestCase {
             XCTAssertTrue(controller.view.bounds.contains(logo.frame), "Logo clipped at \(size)")
             XCTAssertGreaterThan(logo.bounds.width, 0)
             XCTAssertGreaterThan(logo.bounds.height, 0)
+            let sourceWidth = try XCTUnwrap(logo.image?.cgImage).width
+            XCTAssertLessThanOrEqual(logo.bounds.width * controller.traitCollection.displayScale,
+                                     CGFloat(sourceWidth), "Launch logo is enlarged beyond its source pixels")
         }
     }
 
