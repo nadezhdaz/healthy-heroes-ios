@@ -5,6 +5,13 @@ import SwiftUI
 @MainActor
 final class MapAndAnalyticsTests: XCTestCase {
     func testRenderAdaptiveMapCompositions() async throws {
+        // Full source canvases add transparent padding and shrink visible markers.
+        for (asset, size) in [("map_hero_marker", CGSize(width: 252, height: 288)),
+                              ("map_epic_marker", CGSize(width: 269, height: 259)),
+                              ("map_simple_marker", CGSize(width: 232, height: 232))] {
+            let image = await AssetResolver().uiImage(for: asset)
+            XCTAssertEqual(image?.size, size, "Use the cropped Figma node: \(asset)")
+        }
         for asset in ["map_phone_top", "map_phone_bottom", "map_hero_marker", "map_tile_2", "map_tile_3", "map_tile_4", "map_tile_5", "map_tile_6"] {
             let image = await AssetResolver().uiImage(for: asset)
             XCTAssertNotNil(image, "Missing map asset: \(asset)")

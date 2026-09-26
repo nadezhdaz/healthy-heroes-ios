@@ -22,6 +22,8 @@ AssetResolver maps these stable IDs to bundled resources:
 
 Markers are separate assets. The runtime does not use the flattened map-screen as its route. Tile positions and marker coordinates share AdaptiveMapLayout in HealthyHeroes/Features/Map/MapView.swift.
 
+On 27 September, `figma-bridge` verified the original map and exported independent clipped nodes at scale 1: hero 89:494 (252×288), epic 89:493 (269×259), simple 89:495 (232×232). These replace padded 368×386, 300×319 and 319×341 source canvases, which shrank visible artwork inside runtime frames. The four editable route compositions and node-state sheet embed the same exports. Both reward hit boxes remain 269 route units with a 44-point minimum; their aspect ratios are preserved. The source's simple marker has a smaller 232×232 box, so equal runtime reward boxes are an explicit adaptation, not a literal copy of that reference.
+
 ## Coordinates and placement
 
 adaptive-route-anchors.json was exported by executing the current Swift AdaptiveMapLayout, with its source SHA-256 recorded. It contains four reference viewports in logical points, with the safe top/bottom inset inputs. Coordinates are normalized to the full viewport, including safe areas: x * width and y * height recover the screen point. Left/right insets are zero in these reference tables.
