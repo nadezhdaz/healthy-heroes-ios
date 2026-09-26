@@ -2,7 +2,7 @@
 
 Reference: https://www.figma.com/design/8EOrGXfqa08zOuegezFC2y/HH-project-ui-sketch?node-id=86-126
 
-The later Telegram orientation decision supersedes the landscape-phone wording in HEA-22: iPhone portrait, iPad landscape. Figma supplies artwork and composition reference. Runtime builds the route from separate tiles for the current viewport.
+The later Telegram orientation decision supersedes the landscape-phone wording in HEA-22: iPhone portrait, iPad landscape as the design reference. The iPad build declares all orientations so iPadOS can resize its scene in Windowed Apps, as recommended by Apple TN3192. Figma supplies artwork and composition reference. Runtime builds the route from separate tiles for the current viewport.
 
 ## Layers and runtime resources
 
@@ -41,7 +41,7 @@ Hero movement follows cumulative route distance, including sampled turns, over 1
 - Product mapping for rewards at positions 14 and 20, and actual milestone grant behavior.
 - `node-states.svg` supplies an editable two-marker, three-state artwork sheet. Original marker PNGs remain independent image layers; opacity, ring, badges and labels are separate editable vectors. Badge paths illustrate the states; SwiftUI SF Symbols named above remain authoritative for the final glyphs. Figma import is optional (Figma is preferred in HEA-22, not mandatory).
 - Native opaque App Store map screenshots are supplied in `../AppStore/`; see its README for exact dimensions and capture provenance. All 25 named optional size presets are supplied in `../AppStore/canvases/` with a JSON index; they are blank placement templates, not screenshots.
-- Resizable iPad-window runtime checks and interrupted-animation runtime checks. Full-screen Landscape Left and Landscape Right were visually checked on iPad Pro 13-inch (M5); native captures are in `../AppStore/ipad-13/`. The app no longer declares the deprecated `UIRequiresFullScreen` key in Debug or Release; the iPadOS 26 build retains portrait-only iPhone and landscape-only iPad orientations. Actual window resizing still needs verification in Windowed Apps or Stage Manager mode. See [Apple TN3192](https://developer.apple.com/documentation/technotes/tn3192-migrating-your-app-from-the-deprecated-uirequiresfullscreen-key).
+- Interrupted-animation runtime checks remain. Full-screen Landscape Left and Landscape Right were visually checked on iPad Pro 13-inch (M5); native captures are in `../AppStore/ipad-13/`. On 26 September, Windowed Apps was enabled on that simulator and the rebuilt map was checked in full screen, a [narrow full-height window](../../docs/evidence/HEA-22/ipad-narrow-window.jpg) (about 375×1032 points), and a [top-half window](../../docs/evidence/HEA-22/ipad-top-half-window.jpg) (about 1376×516 points). The route recomputed; hero, both reward nodes, Back and STEP/XP remained visible. Back was moved below the system window controls after the first narrow-window capture exposed an overlap; it was tapped successfully in the top-half window. The build omits `UIRequiresFullScreen` and supports all iPad orientations per [Apple TN3192](https://developer.apple.com/documentation/technotes/tn3192-migrating-your-app-from-the-deprecated-uirequiresfullscreen-key). Freeform corner-drag resizing and Stage Manager were not checked.
 
 Use @3x for iPhone and @2x for iPad output scale. Logical-point coordinates above must not be interpreted as screenshot pixels. Keep original source artwork at its native resolution.
 

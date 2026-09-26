@@ -60,7 +60,7 @@ struct MapView: View {
                         .opacity(isLoaded ? 1 : 0)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.top, 8)
+                    .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 48 : 8)
                     Spacer()
                 }
             }

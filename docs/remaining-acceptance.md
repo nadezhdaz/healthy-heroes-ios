@@ -2,7 +2,7 @@
 
 The full Linear objective remains open. Passing unit tests does not establish visual or end-to-end acceptance.
 
-## Current acceptance matrix — 25 September 2026
+## Current acceptance matrix — 26 September 2026
 
 This table supersedes historical “pending” statements below. Linear statuses were checked on 25 September; In Review is not Done. Scope remains all project issues, including design deliverables. Phone portrait supersedes the earlier landscape-only design wording.
 
@@ -13,14 +13,14 @@ This table supersedes historical “pending” statements below. Linear statuses
 | HEA-10 | In Review | Four simple category actions and immediate feedback implemented; custom entry, cancellation and restart/history verified alongside transaction tests. |
 | HEA-12 | In Review | Core progress/quest/reward criteria covered by runtime walkthroughs and domain/event tests, including failed commits and no repeat completion bonus. |
 | HEA-11 | In Review | Fresh iPhone/iPad first-session CTA, stored progress and equipped hero verified; all primary main-screen routes and Settings placeholder navigated on iPhone SE. |
-| HEA-13 | In Review | Individual tile assembly and 30-size geometry matrix pass; video captures food/quest movement from step 3 to 6, with cancellation and Reduce Motion tested. iPad window checks remain in HEA-22. |
+| HEA-13 | In Review | Individual tile assembly and 30-size geometry matrix pass; video captures food/quest movement from step 3 to 6, with cancellation and Reduce Motion tested. iPad window layout checks are recorded in HEA-22. |
 | HEA-14 | In Review | Item and sticker reveal, Try On, persistence and retry/idempotency evidence recorded. |
 | HEA-15 | In Review | Fresh iPhone: Knight Helmet Locked → quest reward Try On → Equipped in Wardrobe; main hero visibly changed and Equipped persisted after restart. Category controls and iPad layout checked. |
 | HEA-16/17 | In Review | Sticker locked/collected/restart states and automatic quest progress/completion verified. Milestones UI exists; bundled milestone definitions are absent. Do not invent their rewards. |
 | HEA-18 | In Progress | Catalog/history and Wardrobe/Album sync verified. Config-driven Milestone reward rows now render locked/unlocked states in a synthetic profile (`PhoneFlowTests/testRenderMilestoneRewardStatuses`). Bundled Milestone conditions and rewards remain unspecified. |
 | HEA-20 | In Review | All ten first-session events persisted in order on the iPad simulator; later launches appended only app_opened. Bounded history, relaunch durability and simulator delivery cost tested. |
 | HEA-21 | In Progress | Full-frame Start/launch compositions checked at small phone, modern phone and iPad sizes; original Figma vector Play, @3x transparent runtime PNG and vector pressed state supplied. Logo source resolution and supplied iPad character crop remain open. |
-| HEA-22 | In Progress | Layered map references, 21 anchors, native screenshots, state/motion specs and editable six-state node sheet supplied. Both iPad landscape orientations visually checked with opaque 2752 × 2064 captures. Removed the full-screen-only project setting and built successfully; actual window resizing remains unverified. Figma is preferred, not mandatory. |
+| HEA-22 | In Progress | Layered map references, 21 anchors, native screenshots, state/motion specs and editable six-state node sheet supplied. Both iPad landscape orientations visually checked. On iPadOS 26.5 with Windowed Apps, full screen, [narrow](evidence/HEA-22/ipad-narrow-window.jpg) (about 375×1032) and [top-half](evidence/HEA-22/ipad-top-half-window.jpg) (about 1376×516) windows were visually checked after rebuilding: the complete route, hero, both reward nodes, Back and STEP/XP remained visible; Back worked in the top-half window. System window controls initially obscured Back in narrow windows; the iPad HUD top inset was increased and rechecked. Freeform drag/Stage Manager, interrupted animation, and product mapping for node rewards remain open. Figma is preferred, not mandatory. |
 | HEA-5 | Todo | Epic remains open while child requirements and design deliverables remain incomplete. |
 
 Map-node reward content at positions 14/20 remains an unanswered product question; HEA-13 itself requires visible upcoming nodes, not a particular grant table. Keep that distinction explicit. HEA-21/22 require 1–10 screenshots per family, not every onboarding screen: existing Start and Map native screenshots meet the available-image count, while canvas presets and adaptive-source work remain separate.
@@ -64,7 +64,7 @@ Outstanding evidence or implementation:
 - HEA-19: first-food highlight and guidance visibility are verified in loaded 320×568 and 1194×834 main-screen renders. The Food Log tooltip was subsequently verified in the iPhone 17 runtime walkthrough below; iPad runtime walkthrough remains open.
 - HEA-7–20: finish the requirement-by-requirement runtime audit, including a fresh first-session loop and restart. Existing partial walkthroughs must not be presented as complete acceptance.
 
-Later Telegram orientation decisions take precedence over the old landscape-only phone wording in Linear: iPhone portrait, iPad landscape.
+Later Telegram orientation decisions take precedence over the old landscape-only phone wording in Linear: iPhone portrait, iPad landscape as the design reference. The iPad Info.plist now permits all orientations for resizable scenes per Apple TN3192; portrait iPad layout remains a separate acceptance check.
 
 - 16 September: verified the landscape main-screen footer fix in loaded renders: Sticker Album and first-session CTA are fully visible. Rechecked HEA-19 directly in Linear and removed reward-opening/equipping prerequisites for dismissing guidance: the CTA now disappears after first food plus first quest, even with an unopened reward. Four PhoneFlowTests passed (`/private/tmp/healthy-heroes-guidance-render-4.xcresult`), including the intermediate food-only state and completed guidance without reward flags. Inspected both completed layouts and the first-entry phone render; attachments are in the Codex workspace under `outputs/guidance-renders-4/`. These are hosted view renders, not full device navigation or safe-area certification.
 
