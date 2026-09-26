@@ -415,6 +415,7 @@ private struct PhoneMainHub: View {
                     menuButton("settings_button", "Settings", action: viewModel.openSettings).frame(width: 48)
                 }
                 .frame(height: 48)
+                .padding(.top, UIDevice.current.userInterfaceIdiom == .pad ? 40 : 0)
 
                 ZStack(alignment: .top) {
                     PhoneProgressMeter(progress: viewModel.progressValue)
