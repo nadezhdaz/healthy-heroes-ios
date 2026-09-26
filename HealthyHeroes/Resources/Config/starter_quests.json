@@ -28,5 +28,35 @@
     "title": "Drink water twice",
     "trigger": "logWater",
     "type": "daily"
+  },
+  {
+    "currentProgress": 0,
+    "id": "milestone_bronze_hero",
+    "status": "active",
+    "target": 30,
+    "title": "Bronze Hero",
+    "trigger": "logAnyHealthyFood",
+    "type": "milestone",
+    "assetID": "quest_icon_bronze"
+  },
+  {
+    "currentProgress": 0,
+    "id": "milestone_silver_hero",
+    "status": "active",
+    "target": 60,
+    "title": "Silver Hero",
+    "trigger": "logAnyHealthyFood",
+    "type": "milestone",
+    "assetID": "quest_icon_silver"
+  },
+  {
+    "currentProgress": 0,
+    "id": "milestone_gold_hero",
+    "status": "active",
+    "target": 100,
+    "title": "Gold Hero",
+    "trigger": "logAnyHealthyFood",
+    "type": "milestone",
+    "assetID": "quest_icon_gold"
   }
 ]

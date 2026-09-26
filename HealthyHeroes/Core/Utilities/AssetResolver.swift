@@ -180,6 +180,9 @@ struct AssetResolver {
             DesignAsset(resourceName: "Log 3 meals")
         case "quest_icon_five_day":
             DesignAsset(resourceName: "Icon_5 day")
+        case "quest_icon_bronze": DesignAsset(resourceName: "Bronze")
+        case "quest_icon_silver": DesignAsset(resourceName: "Silver")
+        case "quest_icon_gold": DesignAsset(resourceName: "Gold")
         case "reward_leaf_cape", "wardrobe_leaf_cape":
             DesignAsset(resourceName: "hat1")
         case "reward_star_sticker", "sticker_star":

@@ -135,7 +135,8 @@ private struct QuestCard: View {
     let quest: Quest
 
     private var iconID: String {
-        switch quest.trigger {
+        if let assetID = quest.assetID { return assetID }
+        return switch quest.trigger {
         case .logFruit: "quest_icon_fruit"
         case .logVegetable: "quest_icon_vegetable"
         case .logWater: "quest_icon_water"
@@ -159,6 +160,12 @@ private struct QuestCard: View {
                     .font(GameDesign.font(18, weight: .black))
                     .foregroundStyle(GameDesign.purple)
                     .lineLimit(2)
+
+                if quest.type == .milestone {
+                    Text("Log \(quest.target) healthy choices")
+                        .font(GameDesign.font(14))
+                        .foregroundStyle(.secondary)
+                }
 
                 Text(quest.status == .active ? "\(quest.currentProgress)/\(quest.target)" : "Completed ✓")
                     .font(GameDesign.font(15, weight: .bold))

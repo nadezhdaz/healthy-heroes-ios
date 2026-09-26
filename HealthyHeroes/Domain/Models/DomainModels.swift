@@ -341,6 +341,7 @@ struct Quest: Codable, Equatable, Identifiable {
     var rewardID: RewardID?
     var status: QuestStatus
     var trigger: QuestTrigger
+    var assetID: String? = nil
 }
 
 enum QuestType: String, Codable {

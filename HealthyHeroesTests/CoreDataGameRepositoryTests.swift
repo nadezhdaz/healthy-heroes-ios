@@ -3,6 +3,62 @@ import XCTest
 @testable import HealthyHeroes
 
 final class CoreDataGameRepositoryTests: XCTestCase {
+    func testBundledMilestonesBackfillHistoryCompleteAtTheirTargetsAndSurviveRestart() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("game.sqlite")
+        let definitions = try BundledGameConfigRepository().starterQuests().filter { $0.type == .milestone }
+        XCTAssertEqual(definitions.map(\.target), [30, 60, 100])
+        XCTAssertEqual(definitions.map(\.title), ["Bronze Hero", "Silver Hero", "Gold Hero"])
+        XCTAssertTrue(definitions.allSatisfy { $0.rewardID == nil })
+        for quest in definitions {
+            let assetID = try XCTUnwrap(quest.assetID)
+            let asset = try XCTUnwrap(AssetResolver().asset(for: assetID))
+            XCTAssertNotNil(Bundle.main.url(forResource: asset.resourceName, withExtension: asset.fileExtension))
+        }
+        // An existing profile predates the milestone definitions.
+        let oldRepository = try makeRepository(quests: [], storeURL: url)
+        var original = makeProfile(quests: [])
+        original.progress.totalXP = 145
+        try await oldRepository.saveProfile(original)
+        for index in 0..<29 {
+            try await oldRepository.addEntry(FoodLogEntry(id: "old-\(index)", category: .fruit,
+                                                        createdAt: Date(timeIntervalSince1970: Double(index))))
+        }
+        let repository = try makeRepository(quests: definitions, storeURL: url)
+        let backfilled = try await repository.loadProfile()
+        XCTAssertEqual(backfilled?.quests.map(\.currentProgress), [29, 29, 29])
+        XCTAssertEqual(backfilled?.progress, original.progress)
+        let logger = LogFoodUseCaseImpl(gameStateRepository: repository,
+                                       gameConfigRepository: StaticGameConfigRepository(quests: definitions),
+                                       progressEngine: ProgressEngine(), questEngine: QuestEngine(),
+                                       rewardEngine: RewardEngine(), mapEngine: MapEngine())
+        for count in 30...101 {
+            let result = try await logger.log(category: .fruit, customTitle: nil)
+            let milestone = definitions.first { $0.target == count }
+            XCTAssertEqual(result.completedQuestIDs, milestone.map { [$0.id] } ?? [])
+            XCTAssertEqual(result.bigProgressAwarded, milestone == nil ? 0 : 25)
+            XCTAssertTrue(result.unlockedRewardIDs.isEmpty)
+            XCTAssertTrue(result.updatedProfile.wardrobe.unlockedItemIDs.isEmpty)
+            XCTAssertTrue(result.updatedProfile.stickers.unlockedStickerIDs.isEmpty)
+        }
+        let reopened = try makeRepository(quests: definitions, storeURL: url)
+        let restored = try await reopened.loadProfile()
+        XCTAssertEqual(restored?.quests.map(\.currentProgress), [30, 60, 100])
+        XCTAssertTrue(restored?.quests.allSatisfy { $0.status == .completed } == true)
+        XCTAssertEqual(restored?.progress.totalXP, 145 + 72 * 5 + 3 * 25)
+        let entries = try await reopened.fetchEntries()
+        XCTAssertEqual(entries.count, 101)
+        // Opening the old store with new definitions also recognizes earned titles
+        // without retroactively changing XP or fabricating inventory gifts.
+        let historical = try makeRepository(quests: [], storeURL: url)
+        let historyOnly = try await historical.loadProfile()
+        try await historical.saveProfile(try XCTUnwrap(historyOnly))
+        let rebuilt = try await reopened.loadProfile()
+        XCTAssertEqual(rebuilt?.quests.map(\.status), [.completed, .completed, .completed])
+        XCTAssertEqual(rebuilt?.progress, restored?.progress)
+    }
+
     func testFirstSessionLoopSurvivesFreshStoreConnection() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

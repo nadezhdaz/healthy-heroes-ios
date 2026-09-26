@@ -18,7 +18,7 @@ struct RewardsView: View {
     }
 
     private var milestoneQuests: [Quest] {
-        profile?.quests.filter { $0.type == .milestone && $0.rewardID != nil } ?? []
+        profile?.quests.filter { $0.type == .milestone } ?? []
     }
 
     var body: some View {
@@ -65,13 +65,20 @@ struct RewardsView: View {
                         Text("Milestone rewards").font(.title2.bold())
                         ForEach(milestoneQuests) { quest in
                             let reward = rewardCatalog.first { $0.id == quest.rewardID }
-                            let unlocked = profile?.unlockedRewardIDs.contains(quest.rewardID ?? "") == true
+                            let unlocked = quest.rewardID == nil ? quest.status != .active : profile?.unlockedRewardIDs.contains(quest.rewardID ?? "") == true
                             HStack(spacing: 12) {
+                                if let assetID = quest.assetID {
+                                    DesignImageView(assetID: assetID, contentMode: .fit) {
+                                        Image(systemName: "seal.fill")
+                                    }
+                                    .frame(width: 44, height: 44)
+                                    .opacity(unlocked ? 1 : 0.4)
+                                }
                                 Image(systemName: unlocked ? "checkmark.seal.fill" : "lock.fill")
                                     .foregroundStyle(unlocked ? GameDesign.green : GameDesign.purple)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(quest.title).font(.headline)
-                                    Text(reward?.title ?? "Reward unavailable").font(.subheadline)
+                                    Text(quest.rewardID == nil ? "\(quest.currentProgress)/\(quest.target) healthy choices" : reward?.title ?? "Reward unavailable").font(.subheadline)
                                 }
                                 Spacer()
                                 Text(unlocked ? "Unlocked" : "Locked").font(.caption.bold())

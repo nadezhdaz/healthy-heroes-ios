@@ -314,7 +314,17 @@ final class CoreDataGameRepository: GameStateRepository, @unchecked Sendable {
             uniqueKeysWithValues: try context.fetch(questRequest).map { ($0.questID, $0) }
         )
         let quests = try gameConfigRepository.starterQuests().map { definition in
-            guard let progress = questProgress[definition.id] else { return definition }
+            guard let progress = questProgress[definition.id] else {
+                guard definition.type == .milestone else { return definition }
+                let request = NSFetchRequest<FoodLogEntryEntity>(entityName: FoodLogEntryEntity.entityName)
+                request.predicate = NSPredicate(format: "profileID == %@ AND category IN %@",
+                                               entity.profileID,
+                                               FoodCategory.allCases.filter(definition.trigger.matches).map(\.rawValue))
+                var quest = definition
+                quest.currentProgress = min(try context.count(for: request), quest.target)
+                quest.status = quest.currentProgress >= quest.target ? .completed : .active
+                return quest
+            }
             guard let status = QuestStatus(rawValue: progress.status) else {
                 throw CoreDataPersistenceError.invalidQuestStatus(progress.status)
             }
