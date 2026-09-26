@@ -43,12 +43,29 @@ struct StartView: View {
             .frame(width: proxy.size.width, height: proxy.size.height)
             .background {
                 ZStack {
-                    Color(red: 0.37, green: 0.79, blue: 0.94)
-                    DesignImageView(assetID: portrait ? "Phone_Forest-background" : "start_scenery", contentMode: portrait ? .fill : .fit) {
-                        GameDesign.green
+                    ForEach(0..<2) { index in
+                        DesignImageView(assetID: index == 0 ? "start_knight" : "start_princess", contentMode: .fit) {
+                            Color.clear
+                        }
+                        .frame(width: proxy.size.width * (portrait ? 0.35 : 0.20),
+                               height: min(300, 600 / displayScale, proxy.size.height * (portrait ? 0.30 : 0.60)))
+                        .position(x: proxy.size.width * (index == 0 ? 0.23 : 0.77),
+                                  y: proxy.size.height * (portrait ? 0.48 : 0.62))
                     }
                 }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+            }
+            .background {
+                GeometryReader { backdrop in
+                    DesignImageView(assetID: "start_scenery", contentMode: .fill) {
+                        Color(red: 0.37, green: 0.79, blue: 0.94)
+                    }
+                    .frame(width: backdrop.size.width, height: backdrop.size.height)
+                    .clipped()
+                }
                 .ignoresSafeArea()
+                .accessibilityHidden(true)
             }
         }
         .toolbar(.hidden, for: .navigationBar)

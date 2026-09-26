@@ -17,6 +17,10 @@ struct AssetResolver {
             DesignAsset(resourceName: assetID, maxPixelSize: 2_556)
         case "start_scenery":
             DesignAsset(resourceName: "Start-scenery", maxPixelSize: 2_048)
+        case "start_knight":
+            DesignAsset(resourceName: "Start-knight")
+        case "start_princess":
+            DesignAsset(resourceName: "Start-princess")
         case "start_wordmark":
             DesignAsset(resourceName: "Start-logo")
         case "start_play":

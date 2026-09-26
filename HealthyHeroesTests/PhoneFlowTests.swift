@@ -57,6 +57,34 @@ final class PhoneFlowTests: XCTestCase {
         }
     }
 
+    func testRenderStartWithCompleteCharacterAssets() async throws {
+        let resolver = AssetResolver()
+        for assetID in ["start_knight", "start_princess", "start_scenery"] {
+            let image = await resolver.uiImage(for: assetID)
+            XCTAssertNotNil(image, "Missing Start source: \(assetID)")
+        }
+        for size in [CGSize(width: 320, height: 568), CGSize(width: 440, height: 956),
+                     CGSize(width: 1376, height: 1032), CGSize(width: 375, height: 516)] {
+            let controller = UIHostingController(rootView: StartView(router: AppRouter(), eventBus: AppEventBus()))
+            let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+            window.rootViewController = controller
+            window.makeKeyAndVisible()
+            controller.view.frame = CGRect(origin: .zero, size: size)
+            try await Task.sleep(for: .seconds(1))
+            controller.view.layoutIfNeeded()
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+                controller.view.drawHierarchy(in: CGRect(origin: .zero, size: size), afterScreenUpdates: true)
+            }
+            window.isHidden = true
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "start-full-characters-\(Int(size.width))x\(Int(size.height))"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
     func testRenderMilestoneRewardStatuses() async throws {
         let sticker = Reward(id: "sticker_star", type: .sticker, title: "Apple Sticker", assetID: "reward_star_sticker")
         let size = CGSize(width: 320, height: 568)

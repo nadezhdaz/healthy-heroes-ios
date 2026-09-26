@@ -35,9 +35,9 @@ for path in files:
         continue
     guide = svg.find("s:g[@id='safe-area-guides']/s:rect", ns)
     top, height = float(guide.attrib["y"]), float(guide.attrib["height"])
-    for name in ("logo", "play-normal"):
+    for name in ("logo", "play-normal", "knight", "princess"):
         image = svg.find(f"s:image[@id='{name}']", ns)
-        if name == "play-normal" and path.stem.endswith("-launch"):
+        if name != "logo" and path.stem.endswith("-launch"):
             assert image is None
             continue
         assert image is not None
@@ -54,4 +54,4 @@ play_png = (root / "HealthyHeroes/Resources/Design/Start/Start-play.png").read_b
 assert play_png.startswith(b"\x89PNG\r\n\x1a\n")
 width, height = struct.unpack(">II", play_png[16:24])
 assert width >= 450 and height >= 450 and play_png[25] == 6
-print("Validated 25 canvases, 8 Start/launch compositions, native asset resolution and 2 vector Play states.")
+print("Validated 25 canvases, 8 Start/launch compositions, complete hero layers, native asset resolution and 2 vector Play states.")

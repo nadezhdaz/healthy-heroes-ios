@@ -9,16 +9,19 @@ Captured from Healthy Heroes commit 6ce2713 (main screen recaptured with the sub
 
 Both files were visually inspected and checked with `sips`: 1320 × 2868 pixels, no alpha. This portrait dimension is accepted for the 6.9-inch iPhone set in [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications), checked on the capture date. iPhone portrait follows the later Telegram decision.
 
-The iPhone Start capture `iphone-6.9/start-1320x2868.jpg` was recaptured on 26 September on iPhone 17 Pro Max / iOS 26.5 with a fresh profile after capping the logo to its source pixel width. Logo, Play and tagline were visually checked. Native JPEG, 1320 × 2868, no alpha.
+The iPhone Start capture `iphone-6.9/start-1320x2868.jpg` was recaptured on 27 September on a separate fresh iPhone 17 Pro Max / iOS 26.5 after importing complete Knight/Princess source art. Logo, both complete characters, Play and tagline were visually checked; Play opens Create Hero. Native JPEG, 1320 × 2868, no alpha.
 
 ## iPad 13-inch
 
 Captured on iPad Pro 13-inch (M5), iOS 26.5, in landscape orientation:
 
 - `ipad-13/start-2752x2064.jpg`: Start screen before creating a profile.
+- `ipad-13/start-opposite-2752x2064.jpg`: the same Start after rotation through portrait into the opposite landscape orientation.
 - `ipad-13/map-2752x2064.jpg`: map at 30 XP / step 3 after the first food and quest.
 
 Both original native JPEG captures were visually inspected; dimensions are 2752 × 2064 and alpha is absent, checked with `sips`. Neither image was resized or composited. On 25 September, `map-landscape-left-2752x2064.jpg` and `map-landscape-right-2752x2064.jpg` were captured after selecting each named Simulator orientation. The full route, hero, both reward nodes, Back and progress panel remain visible; both JPEGs are 2752 × 2064 with no alpha.
+
+The two Start captures were replaced/added on 27 September after adaptive character recomposition, using a fresh iPad Pro 13-inch / iOS 26.5. Three consecutive physical Rotate actions exercised both landscape orientations; complete heroes, logo, Play and tagline remain visible. Play → Create Hero → Back worked. Both JPEGs are 2752 × 2064 without alpha. The background is the original 2048 × 1536 raster scaled by the runtime; these captures do not claim a larger source asset.
 
 ## Remaining
 
